@@ -4,8 +4,7 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 app:
   envs:
   - STEP_VERSION: 0.9.0
-
-  - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova.git
+  - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
 
 workflows:
   test:

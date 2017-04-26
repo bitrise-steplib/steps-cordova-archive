@@ -48,7 +48,7 @@ inputs:
       is_required: true
   - configuration: release
     opts:
-      title: "build command configuration"
+      title: "Build command configuration"
       description: |-
         Specify build command configuration.
 
@@ -59,7 +59,7 @@ inputs:
       is_required: true
   - target: device
     opts:
-      title: "build command target"
+      title: "Build command target"
       description: |-
         Specify build command target.
 
@@ -75,7 +75,7 @@ inputs:
         Path to the build configuration file (build.json), which describes code signing properties.
   - options:
     opts:
-      title: "options to append to the cordova-cli build command"
+      title: "Options to append to the cordova-cli build command"
       description: |-
         Use this input to specify custom options, to append to the end of the cordova-cli build command.
 

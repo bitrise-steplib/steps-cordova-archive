@@ -59,19 +59,19 @@ func (configs ConfigsModel) print() {
 
 func (configs ConfigsModel) validate() error {
 	if err := input.ValidateIfDirExists(configs.WorkDir); err != nil {
-		return fmt.Errorf("Issue with WorkDir: %s", err)
+		return fmt.Errorf("WorkDir: %s", err)
 	}
 
 	if err := input.ValidateWithOptions(configs.Platform, "ios,android", "ios", "android"); err != nil {
-		return fmt.Errorf("Issue with Platform: %s", err)
+		return fmt.Errorf("Platform: %s", err)
 	}
 
 	if err := input.ValidateIfNotEmpty(configs.Configuration); err != nil {
-		return fmt.Errorf("Issue with Configuration: %s", err)
+		return fmt.Errorf("Configuration: %s", err)
 	}
 
 	if err := input.ValidateIfNotEmpty(configs.Target); err != nil {
-		return fmt.Errorf("Issue with Target: %s", err)
+		return fmt.Errorf("Target: %s", err)
 	}
 
 	return nil
