@@ -1,4 +1,4 @@
-title: "Cordova archive"
+title: Cordova archive
 summary: Archives your Cordova project
 description: |-
   Archives your Cordova project.
@@ -11,9 +11,9 @@ description: |-
   then it archives the project by calling:
 
   - `cordova "build" "--debug|--release" "--device|--emulator" "<platform>" "--buildConfig=$BITRISE_CORDOVA_BUILD_CONFIGURATION"`
-website: https://github.com/bitrise-steplib/steps-cordova-archive
-source_code_url: https://github.com/bitrise-steplib/steps-cordova-archive
-support_url: https://github.com/bitrise-steplib/steps-cordova-archive/issues
+website: https://github.com/bitrise-community/steps-cordova-archive
+source_code_url: https://github.com/bitrise-community/steps-cordova-archive
+support_url: https://github.com/bitrise-community/steps-cordova-archive/issues
 project_type_tags:
 - cordova
 type_tags:
@@ -24,7 +24,7 @@ deps:
   - name: gradle
 toolkit:
   go:
-    package_name: github.com/bitrise-steplib/steps-cordova-archive
+    package_name: github.com/bitrise-community/steps-cordova-archive
 inputs:
   - workdir: $BITRISE_SOURCE_DIR
     opts:

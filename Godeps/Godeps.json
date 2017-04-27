@@ -7,6 +7,10 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "github.com/bitrise-community/steps-cordova-archive/cordova",
+			"Rev": "361558355e8992f942206133ea2fc74a7dad9e1b"
+		},
+		{
 			"ImportPath": "github.com/bitrise-io/go-utils/colorstring",
 			"Rev": "c8163959178ae89a3829ce02e485eef6b2befd22"
 		},
