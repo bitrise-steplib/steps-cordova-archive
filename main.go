@@ -16,11 +16,15 @@ import (
 )
 
 const (
-	ipaPathEnvKey     = "BITRISE_IPA_PATH"
-	appPathEnvKey     = "BITRISE_APP_PATH"
+	ipaPathEnvKey = "BITRISE_IPA_PATH"
+
+	appZipPathEnvKey = "BITRISE_APP_PATH"
+	appDirPathEnvKey = "BITRISE_APP_DIR_PATH"
+
 	dsymDirPathEnvKey = "BITRISE_DSYM_DIR_PATH"
 	dsymZipPathEnvKey = "BITRISE_DSYM_PATH"
-	apkPathEnvKey     = "BITRISE_APK_PATH"
+
+	apkPathEnvKey = "BITRISE_APK_PATH"
 )
 
 // ConfigsModel ...
@@ -239,13 +243,14 @@ func main() {
 	}
 
 	// collect outputs
-	fmt.Println()
-	log.Infof("Collecting outputs")
 
 	iosOutputDir := filepath.Join(workDir, "platforms", "ios", "build", configs.Target)
 	if exist, err := pathutil.IsDirExists(iosOutputDir); err != nil {
 		fail("Failed to check if dir (%s) exist, error: %s", iosOutputDir, err)
 	} else if exist {
+		fmt.Println()
+		log.Infof("Collecting ios outputs")
+
 		ipaPattern := filepath.Join(iosOutputDir, "*.ipa")
 		ipas, err := filepath.Glob(ipaPattern)
 		if err != nil {
@@ -292,10 +297,21 @@ func main() {
 		}
 
 		if len(apps) > 0 {
-			if exportedPth, err := moveAndExportOutputs(apps, configs.DeployDir, appPathEnvKey); err != nil {
-				fail("Failed to export apps, error: %s", err)
+			if exportedPth, err := moveAndExportOutputs(apps, configs.DeployDir, appDirPathEnvKey); err != nil {
+				fail("Failed to export dsyms, error: %s", err)
 			} else {
-				log.Donef("The app path is now available in the Environment Variable: %s (value: %s)", appPathEnvKey, exportedPth)
+				log.Donef("The app dir path is now available in the Environment Variable: %s (value: %s)", appDirPathEnvKey, exportedPth)
+
+				zippedExportedPth := exportedPth + ".zip"
+				if err := zip(exportedPth, zippedExportedPth); err != nil {
+					fail("Failed to zip app dir (%s), error: %s", exportedPth, err)
+				}
+
+				if err := tools.ExportEnvironmentWithEnvman(appZipPathEnvKey, zippedExportedPth); err != nil {
+					fail("Failed to export app.zip (%s), error: %s", zippedExportedPth, err)
+				}
+
+				log.Donef("The app.zip path is now available in the Environment Variable: %s (value: %s)", appZipPathEnvKey, zippedExportedPth)
 			}
 		}
 	}
@@ -304,6 +320,9 @@ func main() {
 	if exist, err := pathutil.IsDirExists(androidOutputDir); err != nil {
 		fail("Failed to check if dir (%s) exist, error: %s", iosOutputDir, err)
 	} else if exist {
+		fmt.Println()
+		log.Infof("Collecting android outputs")
+
 		pattern := filepath.Join(androidOutputDir, "*.apk")
 		apks, err := filepath.Glob(pattern)
 		if err != nil {
