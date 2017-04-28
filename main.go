@@ -298,7 +298,7 @@ func main() {
 
 		if len(apps) > 0 {
 			if exportedPth, err := moveAndExportOutputs(apps, configs.DeployDir, appDirPathEnvKey); err != nil {
-				fail("Failed to export dsyms, error: %s", err)
+				fail("Failed to export app, error: %s", err)
 			} else {
 				log.Donef("The app dir path is now available in the Environment Variable: %s (value: %s)", appDirPathEnvKey, exportedPth)
 
