@@ -87,9 +87,12 @@ outputs:
   - BITRISE_IPA_PATH:
     opts:
       title: The created ios .ipa file's path
+  - BITRISE_APP_DIR_PATH:
+    opts:
+      title: The created ios .app dir's path
   - BITRISE_APP_PATH:
     opts:
-      title: The created ios .app file's path
+      title: The created ios .app.zip file's path
   - BITRISE_DSYM_DIR_PATH:
     opts:
       title: The created ios .dSYM dir's path

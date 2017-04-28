@@ -113,6 +113,25 @@ workflows:
             godep save ./...
 
   # ----------------------------------------------------------------
+  # --- workflows for Releasing
+  create-release:
+    title: Create Release version
+    steps:
+    - script:
+        title: Create CHANGELOG and git release
+        inputs:
+        - content: |-
+            #!/bin/bash
+            set -ex
+
+            go get github.com/bitrise-tools/releaseman
+
+            export CI=true
+
+            releaseman create-changelog \
+              --version $STEP_VERSION 
+
+  # ----------------------------------------------------------------
   # --- workflows to Share this step into a Step Library
   audit-this-step:
     steps:
