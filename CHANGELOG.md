@@ -1,6 +1,12 @@
-## Changelog (Current version: 0.9.1)
+## Changelog (Current version: 0.9.2)
 
 -----------------
+
+### 0.9.2 (2017 May 25)
+
+* [8317c6f] release config fix
+* [5ab9eeb] prepare for 0.9.2
+* [1b17523] Cordova version (#7)
 
 ### 0.9.1 (2017 Apr 28)
 
@@ -9,4 +15,4 @@
 
 -----------------
 
-Updated: 2017 Apr 28
+Updated: 2017 May 25
