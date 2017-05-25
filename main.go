@@ -7,9 +7,11 @@ import (
 	"strings"
 
 	"github.com/bitrise-community/steps-cordova-archive/cordova"
+	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-utils/ziputil"
 	"github.com/bitrise-tools/go-steputils/input"
 	"github.com/bitrise-tools/go-steputils/tools"
 	"github.com/kballard/go-shellquote"
@@ -29,24 +31,26 @@ const (
 
 // ConfigsModel ...
 type ConfigsModel struct {
-	WorkDir       string
-	BuildConfig   string
-	Platform      string
-	Configuration string
-	Target        string
-	Options       string
-	DeployDir     string
+	WorkDir        string
+	BuildConfig    string
+	Platform       string
+	Configuration  string
+	Target         string
+	CordovaVersion string
+	Options        string
+	DeployDir      string
 }
 
 func createConfigsModelFromEnvs() ConfigsModel {
 	return ConfigsModel{
-		WorkDir:       os.Getenv("workdir"),
-		BuildConfig:   os.Getenv("build_config"),
-		Platform:      os.Getenv("platform"),
-		Configuration: os.Getenv("configuration"),
-		Target:        os.Getenv("target"),
-		Options:       os.Getenv("options"),
-		DeployDir:     os.Getenv("BITRISE_DEPLOY_DIR"),
+		WorkDir:        os.Getenv("workdir"),
+		BuildConfig:    os.Getenv("build_config"),
+		Platform:       os.Getenv("platform"),
+		Configuration:  os.Getenv("configuration"),
+		Target:         os.Getenv("target"),
+		CordovaVersion: os.Getenv("cordova_version"),
+		Options:        os.Getenv("options"),
+		DeployDir:      os.Getenv("BITRISE_DEPLOY_DIR"),
 	}
 }
 
@@ -57,6 +61,7 @@ func (configs ConfigsModel) print() {
 	log.Printf("- Platform: %s", configs.Platform)
 	log.Printf("- Configuration: %s", configs.Configuration)
 	log.Printf("- Target: %s", configs.Target)
+	log.Printf("- CordovaVersion: %s", configs.CordovaVersion)
 	log.Printf("- Options: %s", configs.Options)
 	log.Printf("- DeployDir: %s", configs.DeployDir)
 }
@@ -76,19 +81,6 @@ func (configs ConfigsModel) validate() error {
 
 	if err := input.ValidateIfNotEmpty(configs.Target); err != nil {
 		return fmt.Errorf("Target: %s", err)
-	}
-
-	return nil
-}
-
-func zip(sourceDir, destinationZipPth string) error {
-	parentDir := filepath.Dir(sourceDir)
-	dirName := filepath.Base(sourceDir)
-	cmd := command.New("/usr/bin/zip", "-rTy", destinationZipPth, dirName)
-	cmd.SetDir(parentDir)
-	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
-	if err != nil {
-		return fmt.Errorf("Failed to zip dir: %s, output: %s, error: %s", sourceDir, out, err)
 	}
 
 	return nil
@@ -134,6 +126,38 @@ func moveAndExportOutputs(outputs []string, deployDir, envKey string) (string, e
 	return outputToExport, nil
 }
 
+func npmUpdate(tool, version string) error {
+	args := []string{}
+	if version == "latest" {
+		args = append(args, "install", "-g", tool)
+	} else {
+		args = append(args, "install", "-g", tool+"@"+version)
+	}
+
+	cmd := command.New("npm", args...)
+
+	log.Donef("$ %s", cmd.PrintableCommandArgs())
+
+	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+		return fmt.Errorf("command failed, output: %s, error: %s", out, err)
+	}
+	return nil
+}
+
+func toolVersion(tool string) (string, error) {
+	out, err := command.New(tool, "-v").RunAndReturnTrimmedCombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("$ %s -v failed, output: %s, error: %s", tool, out, err)
+	}
+
+	lines := strings.Split(out, "\n")
+	if len(lines) > 0 {
+		return lines[len(lines)-1], nil
+	}
+
+	return out, nil
+}
+
 func fail(format string, v ...interface{}) {
 	log.Errorf(format, v...)
 	os.Exit(1)
@@ -148,6 +172,25 @@ func main() {
 	if err := configs.validate(); err != nil {
 		fail("Issue with input: %s", err)
 	}
+
+	// Update cordova version
+	if configs.CordovaVersion != "" {
+		fmt.Println()
+		log.Infof("Updating cordova version to: %s", configs.CordovaVersion)
+
+		if err := npmUpdate("cordova", configs.CordovaVersion); err != nil {
+			fail(err.Error())
+		}
+	}
+
+	// Print cordova and ionic version
+	cordovaVersion, err := toolVersion("cordova")
+	if err != nil {
+		fail(err.Error())
+	}
+
+	fmt.Println()
+	log.Printf("using cordova version:\n%s", colorstring.Green(cordovaVersion))
 
 	// Fulfill cordova builder
 	builder := cordova.New()
@@ -278,7 +321,7 @@ func main() {
 				log.Donef("The dsym dir path is now available in the Environment Variable: %s (value: %s)", dsymDirPathEnvKey, exportedPth)
 
 				zippedExportedPth := exportedPth + ".zip"
-				if err := zip(exportedPth, zippedExportedPth); err != nil {
+				if err := ziputil.Zip(exportedPth, zippedExportedPth); err != nil {
 					fail("Failed to zip dsym dir (%s), error: %s", exportedPth, err)
 				}
 
@@ -303,7 +346,7 @@ func main() {
 				log.Donef("The app dir path is now available in the Environment Variable: %s (value: %s)", appDirPathEnvKey, exportedPth)
 
 				zippedExportedPth := exportedPth + ".zip"
-				if err := zip(exportedPth, zippedExportedPth); err != nil {
+				if err := ziputil.Zip(exportedPth, zippedExportedPth); err != nil {
 					fail("Failed to zip app dir (%s), error: %s", exportedPth, err)
 				}
 
