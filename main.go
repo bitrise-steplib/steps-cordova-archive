@@ -89,20 +89,42 @@ func (configs ConfigsModel) validate() error {
 func moveAndExportOutputs(outputs []string, deployDir, envKey string) (string, error) {
 	outputToExport := ""
 	for _, output := range outputs {
-		outputFile, err := os.Open(output)
+		info, err := os.Lstat(output)
 		if err != nil {
 			return "", err
 		}
 
-		outputFileInfo, err := outputFile.Stat()
-		if err != nil {
-			return "", err
+		if info.Mode()&os.ModeSymlink != 0 {
+			resolvedPth, err := os.Readlink(output)
+			if err != nil {
+				return "", err
+			}
+
+			log.Warnf("Output: %s is a symlink to: %s", output, resolvedPth)
+
+			if exist, err := pathutil.IsPathExists(resolvedPth); err != nil {
+				return "", err
+			} else if !exist {
+				return "", fmt.Errorf("resolved path: %s does not exist", resolvedPth)
+			}
+
+			resolvedInfo, err := os.Lstat(resolvedPth)
+			if err != nil {
+				return "", err
+			}
+
+			if resolvedInfo.Mode()&os.ModeSymlink != 0 {
+				return "", fmt.Errorf("resolved path: %s is still symlink", resolvedPth)
+			}
+
+			output = resolvedPth
+			info = resolvedInfo
 		}
 
 		fileName := filepath.Base(output)
 		destinationPth := filepath.Join(deployDir, fileName)
 
-		if outputFileInfo.IsDir() {
+		if info.IsDir() {
 			if err := command.CopyDir(output, destinationPth, false); err != nil {
 				return "", err
 			}
@@ -286,11 +308,13 @@ func main() {
 	}
 
 	// collect outputs
-
+	iosOutputDirExist := false
 	iosOutputDir := filepath.Join(workDir, "platforms", "ios", "build", configs.Target)
 	if exist, err := pathutil.IsDirExists(iosOutputDir); err != nil {
 		fail("Failed to check if dir (%s) exist, error: %s", iosOutputDir, err)
 	} else if exist {
+		iosOutputDirExist = true
+
 		fmt.Println()
 		log.Infof("Collecting ios outputs")
 
@@ -321,7 +345,7 @@ func main() {
 				log.Donef("The dsym dir path is now available in the Environment Variable: %s (value: %s)", dsymDirPathEnvKey, exportedPth)
 
 				zippedExportedPth := exportedPth + ".zip"
-				if err := ziputil.Zip(exportedPth, zippedExportedPth); err != nil {
+				if err := ziputil.ZipFile(exportedPth, zippedExportedPth); err != nil {
 					fail("Failed to zip dsym dir (%s), error: %s", exportedPth, err)
 				}
 
@@ -341,12 +365,12 @@ func main() {
 
 		if len(apps) > 0 {
 			if exportedPth, err := moveAndExportOutputs(apps, configs.DeployDir, appDirPathEnvKey); err != nil {
-				fail("Failed to export apps, error: %s", err)
+				log.Warnf("Failed to export apps, error: %s", err)
 			} else {
 				log.Donef("The app dir path is now available in the Environment Variable: %s (value: %s)", appDirPathEnvKey, exportedPth)
 
 				zippedExportedPth := exportedPth + ".zip"
-				if err := ziputil.Zip(exportedPth, zippedExportedPth); err != nil {
+				if err := ziputil.ZipDir(exportedPth, zippedExportedPth, false); err != nil {
 					fail("Failed to zip app dir (%s), error: %s", exportedPth, err)
 				}
 
@@ -359,10 +383,13 @@ func main() {
 		}
 	}
 
+	androidOutputDirExist := false
 	androidOutputDir := filepath.Join(workDir, "platforms", "android", "build", "outputs", "apk")
 	if exist, err := pathutil.IsDirExists(androidOutputDir); err != nil {
 		fail("Failed to check if dir (%s) exist, error: %s", iosOutputDir, err)
 	} else if exist {
+		androidOutputDirExist = true
+
 		fmt.Println()
 		log.Infof("Collecting android outputs")
 
@@ -379,5 +406,10 @@ func main() {
 				log.Donef("The apk path is now available in the Environment Variable: %s (value: %s)", apkPathEnvKey, exportedPth)
 			}
 		}
+	}
+
+	if !iosOutputDirExist && !androidOutputDirExist {
+		log.Warnf("No ios nor android platform's output dir exist")
+		fail("No output generated")
 	}
 }

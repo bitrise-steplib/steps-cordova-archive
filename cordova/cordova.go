@@ -69,6 +69,8 @@ func (builder *Model) commandSlice(cmd ...string) []string {
 		}
 	}
 
+	cmdSlice = append(cmdSlice, builder.customOptions...)
+
 	return cmdSlice
 }
 

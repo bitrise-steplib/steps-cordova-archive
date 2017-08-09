@@ -8,44 +8,48 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/bitrise-community/steps-cordova-archive/cordova",
-			"Comment": "0.9.1",
-			"Rev": "b938c2c3503ef8754b0cb97cf3eaf91fb2c3fb68"
+			"Comment": "0.9.2",
+			"Rev": "30035e80b2596941b263fc0b96efafee47fdc074"
 		},
 		{
 			"ImportPath": "github.com/bitrise-io/go-utils/colorstring",
-			"Rev": "ad8f0cff18a087ae94ce410d6dbd9f04bb6d6c00"
+			"Rev": "6eb582e08179a025ed2deb86ea6dffbd13ba1ff6"
 		},
 		{
 			"ImportPath": "github.com/bitrise-io/go-utils/command",
-			"Rev": "ad8f0cff18a087ae94ce410d6dbd9f04bb6d6c00"
+			"Rev": "6eb582e08179a025ed2deb86ea6dffbd13ba1ff6"
 		},
 		{
 			"ImportPath": "github.com/bitrise-io/go-utils/errorutil",
-			"Rev": "ad8f0cff18a087ae94ce410d6dbd9f04bb6d6c00"
+			"Rev": "6eb582e08179a025ed2deb86ea6dffbd13ba1ff6"
 		},
 		{
 			"ImportPath": "github.com/bitrise-io/go-utils/log",
-			"Rev": "ad8f0cff18a087ae94ce410d6dbd9f04bb6d6c00"
+			"Rev": "6eb582e08179a025ed2deb86ea6dffbd13ba1ff6"
 		},
 		{
 			"ImportPath": "github.com/bitrise-io/go-utils/pathutil",
-			"Rev": "ad8f0cff18a087ae94ce410d6dbd9f04bb6d6c00"
+			"Rev": "6eb582e08179a025ed2deb86ea6dffbd13ba1ff6"
+		},
+		{
+			"ImportPath": "github.com/bitrise-io/go-utils/retry",
+			"Rev": "6eb582e08179a025ed2deb86ea6dffbd13ba1ff6"
 		},
 		{
 			"ImportPath": "github.com/bitrise-io/go-utils/ziputil",
-			"Rev": "ad8f0cff18a087ae94ce410d6dbd9f04bb6d6c00"
+			"Rev": "6eb582e08179a025ed2deb86ea6dffbd13ba1ff6"
 		},
 		{
 			"ImportPath": "github.com/bitrise-tools/go-steputils/input",
-			"Rev": "4648abbb44aff0929ccdd27312aa0a70077c14fc"
+			"Rev": "a848c9870ff7d745a8fb2a951e1c81fcb147b4ec"
 		},
 		{
 			"ImportPath": "github.com/bitrise-tools/go-steputils/tools",
-			"Rev": "4648abbb44aff0929ccdd27312aa0a70077c14fc"
+			"Rev": "a848c9870ff7d745a8fb2a951e1c81fcb147b4ec"
 		},
 		{
 			"ImportPath": "github.com/kballard/go-shellquote",
-			"Rev": "d8ec1a69a250a17bb0e419c386eac1f3711dc142"
+			"Rev": "cd60e84ee657ff3dc51de0b4f55dd299a3e136f2"
 		}
 	]
 }
