@@ -308,10 +308,13 @@ func main() {
 	}
 
 	// collect outputs
+	iosOutputDirExist := false
 	iosOutputDir := filepath.Join(workDir, "platforms", "ios", "build", configs.Target)
 	if exist, err := pathutil.IsDirExists(iosOutputDir); err != nil {
 		fail("Failed to check if dir (%s) exist, error: %s", iosOutputDir, err)
 	} else if exist {
+		iosOutputDirExist = true
+
 		fmt.Println()
 		log.Infof("Collecting ios outputs")
 
@@ -380,10 +383,13 @@ func main() {
 		}
 	}
 
+	androidOutputDirExist := false
 	androidOutputDir := filepath.Join(workDir, "platforms", "android", "build", "outputs", "apk")
 	if exist, err := pathutil.IsDirExists(androidOutputDir); err != nil {
 		fail("Failed to check if dir (%s) exist, error: %s", iosOutputDir, err)
 	} else if exist {
+		androidOutputDirExist = true
+
 		fmt.Println()
 		log.Infof("Collecting android outputs")
 
@@ -400,5 +406,10 @@ func main() {
 				log.Donef("The apk path is now available in the Environment Variable: %s (value: %s)", apkPathEnvKey, exportedPth)
 			}
 		}
+	}
+
+	if !iosOutputDirExist && !androidOutputDirExist {
+		log.Warnf("No ios nor android platform's output dir exist")
+		fail("No output generated")
 	}
 }
