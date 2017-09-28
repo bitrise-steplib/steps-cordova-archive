@@ -273,15 +273,15 @@ func main() {
 	fmt.Println()
 	log.Infof("Preparing project")
 
-	platformRemoveCmd := builder.PlatformCommand("rm")
-	platformRemoveCmd.SetStdout(os.Stdout)
-	platformRemoveCmd.SetStderr(os.Stderr)
+	// platformRemoveCmd := builder.PlatformCommand("rm")
+	// platformRemoveCmd.SetStdout(os.Stdout)
+	// platformRemoveCmd.SetStderr(os.Stderr)
 
-	log.Donef("$ %s", platformRemoveCmd.PrintableCommandArgs())
+	// log.Donef("$ %s", platformRemoveCmd.PrintableCommandArgs())
 
-	if err := platformRemoveCmd.Run(); err != nil {
-		fail("cordova failed, error: %s", err)
-	}
+	// if err := platformRemoveCmd.Run(); err != nil {
+	// 	fail("cordova failed, error: %s", err)
+	// }
 
 	platformAddCmd := builder.PlatformCommand("add")
 	platformAddCmd.SetStdout(os.Stdout)
