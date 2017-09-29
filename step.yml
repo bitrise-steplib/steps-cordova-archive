@@ -46,6 +46,18 @@ inputs:
       - "ios"
       - "android"
       is_required: true
+  - readd: "true"
+    opts:
+      title: "Remove platforms as prepare step"
+      description: |-
+        Specify whether to remove platforms and then re-add (overwrites some config.xml values).
+
+        `cordova platform rm <platform>`
+
+      value_options:
+      - "true"
+      - "false"
+      is_required: true
   - configuration: release
     opts:
       title: "Build command configuration"

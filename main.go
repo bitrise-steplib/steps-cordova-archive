@@ -34,6 +34,7 @@ type ConfigsModel struct {
 	WorkDir        string
 	BuildConfig    string
 	Platform       string
+	ReAdd          string
 	Configuration  string
 	Target         string
 	CordovaVersion string
@@ -46,6 +47,7 @@ func createConfigsModelFromEnvs() ConfigsModel {
 		WorkDir:        os.Getenv("workdir"),
 		BuildConfig:    os.Getenv("build_config"),
 		Platform:       os.Getenv("platform"),
+		ReAdd:          os.Getenv("readd"),
 		Configuration:  os.Getenv("configuration"),
 		Target:         os.Getenv("target"),
 		CordovaVersion: os.Getenv("cordova_version"),
@@ -59,6 +61,7 @@ func (configs ConfigsModel) print() {
 	log.Printf("- WorkDir: %s", configs.WorkDir)
 	log.Printf("- BuildConfig: %s", configs.BuildConfig)
 	log.Printf("- Platform: %s", configs.Platform)
+	log.Printf("- Re-Add: %s", configs.ReAdd)
 	log.Printf("- Configuration: %s", configs.Configuration)
 	log.Printf("- Target: %s", configs.Target)
 	log.Printf("- CordovaVersion: %s", configs.CordovaVersion)
@@ -73,6 +76,10 @@ func (configs ConfigsModel) validate() error {
 
 	if err := input.ValidateWithOptions(configs.Platform, "ios,android", "ios", "android"); err != nil {
 		return fmt.Errorf("Platform: %s", err)
+	}
+
+	if err := input.ValidateWithOptions(configs.ReAdd, "true", "false"); err != nil {
+		return fmt.Errorf("Re-Add: %s", err)
 	}
 
 	if err := input.ValidateIfNotEmpty(configs.Configuration); err != nil {
@@ -273,15 +280,17 @@ func main() {
 	fmt.Println()
 	log.Infof("Preparing project")
 
-	// platformRemoveCmd := builder.PlatformCommand("rm")
-	// platformRemoveCmd.SetStdout(os.Stdout)
-	// platformRemoveCmd.SetStderr(os.Stderr)
+	if configs.ReAdd == "true" {
+		platformRemoveCmd := builder.PlatformCommand("rm")
+		platformRemoveCmd.SetStdout(os.Stdout)
+		platformRemoveCmd.SetStderr(os.Stderr)
 
-	// log.Donef("$ %s", platformRemoveCmd.PrintableCommandArgs())
+		log.Donef("$ %s", platformRemoveCmd.PrintableCommandArgs())
 
-	// if err := platformRemoveCmd.Run(); err != nil {
-	// 	fail("cordova failed, error: %s", err)
-	// }
+		if err := platformRemoveCmd.Run(); err != nil {
+			fail("cordova failed, error: %s", err)
+		}
+	}
 
 	platformAddCmd := builder.PlatformCommand("add")
 	platformAddCmd.SetStdout(os.Stdout)
