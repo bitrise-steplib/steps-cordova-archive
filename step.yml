@@ -48,7 +48,7 @@ inputs:
       is_required: true
   - readd: "true"
     opts:
-      title: "Remove platforms as prepare step"
+      title: "Should remove platforms as prepare step?"
       description: |-
         Specify whether to remove platforms and then re-add (overwrites some config.xml values).
 
