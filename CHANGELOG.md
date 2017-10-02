@@ -1,6 +1,12 @@
-## Changelog (Current version: 0.9.3)
+## Changelog (Current version: 1.0.0)
 
 -----------------
+
+### 1.0.0 (2017 Oct 02)
+
+* [6896b68] prepare for 1.0.0
+* [ac47a14] input reordering (#12)
+* [071b4c0] Adds Re-Add configuration option to prepare stage (#11)
 
 ### 0.9.3 (2017 Aug 09)
 
@@ -20,4 +26,4 @@
 
 -----------------
 
-Updated: 2017 Aug 09
+Updated: 2017 Oct 02
