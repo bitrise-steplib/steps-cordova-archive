@@ -31,26 +31,26 @@ const (
 
 // ConfigsModel ...
 type ConfigsModel struct {
-	WorkDir        string
-	BuildConfig    string
 	Platform       string
-	ReAdd          string
 	Configuration  string
 	Target         string
+	BuildConfig    string
+	ReAddPlatform  string
 	CordovaVersion string
+	WorkDir        string
 	Options        string
 	DeployDir      string
 }
 
 func createConfigsModelFromEnvs() ConfigsModel {
 	return ConfigsModel{
-		WorkDir:        os.Getenv("workdir"),
-		BuildConfig:    os.Getenv("build_config"),
 		Platform:       os.Getenv("platform"),
-		ReAdd:          os.Getenv("readd"),
 		Configuration:  os.Getenv("configuration"),
 		Target:         os.Getenv("target"),
+		BuildConfig:    os.Getenv("build_config"),
+		ReAddPlatform:  os.Getenv("readd_platform"),
 		CordovaVersion: os.Getenv("cordova_version"),
+		WorkDir:        os.Getenv("workdir"),
 		Options:        os.Getenv("options"),
 		DeployDir:      os.Getenv("BITRISE_DEPLOY_DIR"),
 	}
@@ -58,13 +58,13 @@ func createConfigsModelFromEnvs() ConfigsModel {
 
 func (configs ConfigsModel) print() {
 	log.Infof("Configs:")
-	log.Printf("- WorkDir: %s", configs.WorkDir)
-	log.Printf("- BuildConfig: %s", configs.BuildConfig)
 	log.Printf("- Platform: %s", configs.Platform)
-	log.Printf("- Re-Add: %s", configs.ReAdd)
 	log.Printf("- Configuration: %s", configs.Configuration)
 	log.Printf("- Target: %s", configs.Target)
+	log.Printf("- BuildConfig: %s", configs.BuildConfig)
+	log.Printf("- ReAddPlatform: %s", configs.ReAddPlatform)
 	log.Printf("- CordovaVersion: %s", configs.CordovaVersion)
+	log.Printf("- WorkDir: %s", configs.WorkDir)
 	log.Printf("- Options: %s", configs.Options)
 	log.Printf("- DeployDir: %s", configs.DeployDir)
 }
@@ -78,8 +78,8 @@ func (configs ConfigsModel) validate() error {
 		return fmt.Errorf("Platform: %s", err)
 	}
 
-	if err := input.ValidateWithOptions(configs.ReAdd, "true", "false"); err != nil {
-		return fmt.Errorf("Re-Add: %s", err)
+	if err := input.ValidateWithOptions(configs.ReAddPlatform, "true", "false"); err != nil {
+		return fmt.Errorf("ReAddPlatform: %s", err)
 	}
 
 	if err := input.ValidateIfNotEmpty(configs.Configuration); err != nil {
@@ -280,7 +280,7 @@ func main() {
 	fmt.Println()
 	log.Infof("Preparing project")
 
-	if configs.ReAdd == "true" {
+	if configs.ReAddPlatform == "true" {
 		platformRemoveCmd := builder.PlatformCommand("rm")
 		platformRemoveCmd.SetStdout(os.Stdout)
 		platformRemoveCmd.SetStderr(os.Stderr)
