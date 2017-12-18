@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/bitrise-io/go-utils"
   packages = ["colorstring","command","errorutil","log","pathutil","ziputil"]
-  revision = "e2d40cad7992353c1f14cc24c86638d9e164bf52"
+  revision = "b33f6bcef9b50045d7e62364b354584afc3ee329"
 
 [[projects]]
   branch = "master"
