@@ -67,9 +67,8 @@ func (builder *Model) commandSlice(cmd ...string) []string {
 		if builder.buildConfig != "" {
 			cmdSlice = append(cmdSlice, "--buildConfig", builder.buildConfig)
 		}
+		cmdSlice = append(cmdSlice, builder.customOptions...)
 	}
-
-	cmdSlice = append(cmdSlice, builder.customOptions...)
 
 	return cmdSlice
 }
