@@ -187,6 +187,19 @@ func toolVersion(tool string) (string, error) {
 	return out, nil
 }
 
+func findByExt(root, ext string) ([]string, error) {
+	var matches []string
+	if walkErr := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() && filepath.Ext(path) == "."+ext {
+			matches = append(matches, path)
+		}
+		return err
+	}); walkErr != nil {
+		return nil, walkErr
+	}
+	return matches, nil
+}
+
 func fail(format string, v ...interface{}) {
 	log.Errorf(format, v...)
 	os.Exit(1)
@@ -327,10 +340,9 @@ func main() {
 		fmt.Println()
 		log.Infof("Collecting ios outputs")
 
-		ipaPattern := filepath.Join(iosOutputDir, "*.ipa")
-		ipas, err := filepath.Glob(ipaPattern)
+		ipas, err := findByExt(iosOutputDir, "ipa")
 		if err != nil {
-			fail("Failed to find ipas, with pattern (%s), error: %s", ipaPattern, err)
+			fail("Failed to find ipas in dir (%s), error: %s", iosOutputDir, err)
 		}
 
 		if len(ipas) > 0 {
@@ -341,10 +353,9 @@ func main() {
 			}
 		}
 
-		dsymPattern := filepath.Join(iosOutputDir, "*.dSYM")
-		dsyms, err := filepath.Glob(dsymPattern)
+		dsyms, err := findByExt(iosOutputDir, "dSYM")
 		if err != nil {
-			fail("Failed to find dSYMs, with pattern (%s), error: %s", dsymPattern, err)
+			fail("Failed to find dSYMs in dir (%s), error: %s", iosOutputDir, err)
 		}
 
 		if len(dsyms) > 0 {
@@ -366,10 +377,9 @@ func main() {
 			}
 		}
 
-		appPattern := filepath.Join(iosOutputDir, "*.app")
-		apps, err := filepath.Glob(appPattern)
+		apps, err := findByExt(iosOutputDir, "app")
 		if err != nil {
-			fail("Failed to find apps, with pattern (%s), error: %s", appPattern, err)
+			fail("Failed to find apps in dir (%s), error: %s", iosOutputDir, err)
 		}
 
 		if len(apps) > 0 {
@@ -402,10 +412,9 @@ func main() {
 		fmt.Println()
 		log.Infof("Collecting android outputs")
 
-		pattern := filepath.Join(androidOutputDir, "*.apk")
-		apks, err := filepath.Glob(pattern)
+		apks, err := findByExt(androidOutputDir, "apk")
 		if err != nil {
-			fail("Failed to find apks, with pattern (%s), error: %s", pattern, err)
+			fail("Failed to find apks in dir (%s), error: %s", androidOutputDir, err)
 		}
 
 		if len(apks) > 0 {
