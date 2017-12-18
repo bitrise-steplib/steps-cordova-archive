@@ -187,7 +187,7 @@ func toolVersion(tool string) (string, error) {
 	return out, nil
 }
 
-func find(root, ext string) ([]string, error) {
+func findByExt(root, ext string) ([]string, error) {
 	var matches []string
 	if walkErr := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() && filepath.Ext(path) == "."+ext {
@@ -340,7 +340,7 @@ func main() {
 		fmt.Println()
 		log.Infof("Collecting ios outputs")
 
-		ipas, err := find(iosOutputDir, "ipa")
+		ipas, err := findByExt(iosOutputDir, "ipa")
 		if err != nil {
 			fail("Failed to find ipas in dir (%s), error: %s", iosOutputDir, err)
 		}
@@ -353,7 +353,7 @@ func main() {
 			}
 		}
 
-		dsyms, err := find(iosOutputDir, "dSYM")
+		dsyms, err := findByExt(iosOutputDir, "dSYM")
 		if err != nil {
 			fail("Failed to find dSYMs in dir (%s), error: %s", iosOutputDir, err)
 		}
@@ -377,7 +377,7 @@ func main() {
 			}
 		}
 
-		apps, err := find(iosOutputDir, "app")
+		apps, err := findByExt(iosOutputDir, "app")
 		if err != nil {
 			fail("Failed to find apps in dir (%s), error: %s", iosOutputDir, err)
 		}
@@ -412,7 +412,7 @@ func main() {
 		fmt.Println()
 		log.Infof("Collecting android outputs")
 
-		apks, err := find(androidOutputDir, "apk")
+		apks, err := findByExt(androidOutputDir, "apk")
 		if err != nil {
 			fail("Failed to find apks in dir (%s), error: %s", androidOutputDir, err)
 		}
