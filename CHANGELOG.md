@@ -1,6 +1,12 @@
-## Changelog (Current version: 1.0.0)
+## Changelog (Current version: 1.0.1)
 
 -----------------
+
+### 1.0.1 (2017 Dec 18)
+
+* [007186a] Bump version to 1.0.1
+* [feb237b] Find output artifacts in subdirs (#16)
+* [4d90cb2] Fix: custom options not appended to cordova build command (#14)
 
 ### 1.0.0 (2017 Oct 02)
 
@@ -26,4 +32,4 @@
 
 -----------------
 
-Updated: 2017 Oct 02
+Updated: 2017 Dec 18
