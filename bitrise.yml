@@ -3,7 +3,7 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:
-  - STEP_VERSION: 1.0.0
+  - STEP_VERSION: 1.0.1
   - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
 
 workflows:
@@ -115,12 +115,9 @@ workflows:
             #!/bin/bash
             set -ex
 
-            go get github.com/bitrise-tools/releaseman
-
+            go get -u github.com/bitrise-tools/releaseman
             export CI=true
-
-            releaseman create-changelog \
-              --version $STEP_VERSION 
+            releaseman create --version "$STEP_VERSION"
 
   # ----------------------------------------------------------------
   # --- workflows to Share this step into a Step Library
