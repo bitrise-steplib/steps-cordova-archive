@@ -190,7 +190,7 @@ func toolVersion(tool string) (string, error) {
 func findByExt(root, ext string) ([]string, error) {
 	var matches []string
 	if walkErr := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if !info.IsDir() && filepath.Ext(path) == "."+ext {
+		if filepath.Ext(path) == "."+ext {
 			matches = append(matches, path)
 		}
 		return err
