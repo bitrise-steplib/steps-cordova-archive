@@ -319,7 +319,7 @@ func main() {
 	fmt.Println()
 	log.Infof("Building project")
 
-	buildCmd := builder.BuildCommand()
+	buildCmd := builder.CompileCommand()
 	buildCmd.SetStdout(os.Stdout)
 	buildCmd.SetStderr(os.Stderr)
 
