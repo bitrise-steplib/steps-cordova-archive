@@ -1,6 +1,12 @@
-## Changelog (Current version: 1.0.1)
+## Changelog (Current version: 1.1.0)
 
 -----------------
+
+### 1.1.0 (2018 Jan 19)
+
+* [e1228ac] Bump version to 1.1.0
+* [026f6f1] Use compile command instead of build (#19)
+* [8f8036b] Find generated .app artifact (#18)
 
 ### 1.0.1 (2017 Dec 18)
 
@@ -32,4 +38,4 @@
 
 -----------------
 
-Updated: 2017 Dec 18
+Updated: 2018 Jan 19
