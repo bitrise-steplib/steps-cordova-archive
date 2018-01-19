@@ -50,7 +50,7 @@ func (builder *Model) commandSlice(cmd ...string) []string {
 	cmdSlice := []string{"cordova"}
 	cmdSlice = append(cmdSlice, cmd...)
 
-	if len(cmd) == 1 && cmd[0] == "build" {
+	if len(cmd) == 1 && cmd[0] == "compile" {
 		if builder.configuration != "" {
 			cmdSlice = append(cmdSlice, "--"+builder.configuration)
 		}
@@ -63,7 +63,7 @@ func (builder *Model) commandSlice(cmd ...string) []string {
 		cmdSlice = append(cmdSlice, builder.platforms...)
 	}
 
-	if len(cmd) == 1 && cmd[0] == "build" {
+	if len(cmd) == 1 && cmd[0] == "compile" {
 		if builder.buildConfig != "" {
 			cmdSlice = append(cmdSlice, "--buildConfig", builder.buildConfig)
 		}
@@ -79,8 +79,8 @@ func (builder *Model) PlatformCommand(cmd string) *command.Model {
 	return command.New(cmdSlice[0], cmdSlice[1:]...)
 }
 
-// BuildCommand ...
-func (builder *Model) BuildCommand() *command.Model {
-	cmdSlice := builder.commandSlice("build")
+// CompileCommand ...
+func (builder *Model) CompileCommand() *command.Model {
+	cmdSlice := builder.commandSlice("compile")
 	return command.New(cmdSlice[0], cmdSlice[1:]...)
 }
