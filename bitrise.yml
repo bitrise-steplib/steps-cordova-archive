@@ -31,6 +31,27 @@ workflows:
         title: Step Test
         inputs:
         - target: emulator
+    - script:
+        title: Output test
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            if [[ ! -e "$BITRISE_DSYM_DIR_PATH" ]]; then
+                echo "Does not exist: dSYM dir's path"
+                exit 1
+            elif [[ ! -e "$BITRISE_DSYM_PATH" ]]; then
+                echo "Does not exist: dSYM.zip file's path"
+                exit 1
+            elif [[ ! -e "$BITRISE_APP_DIR_PATH" ]]; then
+                echo "Does not exist: app dir's path"
+                exit 1
+            elif [[ ! -e "$BITRISE_APP_PATH" ]]; then
+                echo "Does not exist: app.zip file's path"
+                exit 1
+            elif [[ ! -e "$BITRISE_APK_PATH" ]]; then
+                echo "Does not exist: apk file's path"
+                exit 1
+            fi
 
   go-tests:
     before_run:

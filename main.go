@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/bitrise-community/steps-cordova-archive/cordova"
 	"github.com/bitrise-io/go-utils/colorstring"
@@ -187,9 +188,13 @@ func toolVersion(tool string) (string, error) {
 	return out, nil
 }
 
-func findByExt(root, ext string) ([]string, error) {
+func findArtifact(rootDir, ext string, buildStart time.Time) ([]string, error) {
 	var matches []string
-	if walkErr := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	if walkErr := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
+		if info.ModTime().Before(buildStart) {
+			return nil
+		}
+
 		if filepath.Ext(path) == "."+ext {
 			matches = append(matches, path)
 		}
@@ -325,6 +330,8 @@ func main() {
 
 	log.Donef("$ %s", buildCmd.PrintableCommandArgs())
 
+	compileStart := time.Now()
+
 	if err := buildCmd.Run(); err != nil {
 		fail("cordova failed, error: %s", err)
 	}
@@ -340,7 +347,7 @@ func main() {
 		fmt.Println()
 		log.Infof("Collecting ios outputs")
 
-		ipas, err := findByExt(iosOutputDir, "ipa")
+		ipas, err := findArtifact(iosOutputDir, "ipa", compileStart)
 		if err != nil {
 			fail("Failed to find ipas in dir (%s), error: %s", iosOutputDir, err)
 		}
@@ -353,7 +360,7 @@ func main() {
 			}
 		}
 
-		dsyms, err := findByExt(iosOutputDir, "dSYM")
+		dsyms, err := findArtifact(iosOutputDir, "dSYM", compileStart)
 		if err != nil {
 			fail("Failed to find dSYMs in dir (%s), error: %s", iosOutputDir, err)
 		}
@@ -377,7 +384,7 @@ func main() {
 			}
 		}
 
-		apps, err := findByExt(iosOutputDir, "app")
+		apps, err := findArtifact(iosOutputDir, "app", compileStart)
 		if err != nil {
 			fail("Failed to find apps in dir (%s), error: %s", iosOutputDir, err)
 		}
@@ -403,7 +410,10 @@ func main() {
 	}
 
 	androidOutputDirExist := false
-	androidOutputDir := filepath.Join(workDir, "platforms", "android", "build", "outputs", "apk")
+	// examples for apk paths:
+	// PROJECT_ROOT/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+	// PROJECT_ROOT/platforms/android/build/outputs/apk/debug/app-debug.apk
+	androidOutputDir := filepath.Join(workDir, "platforms", "android")
 	if exist, err := pathutil.IsDirExists(androidOutputDir); err != nil {
 		fail("Failed to check if dir (%s) exist, error: %s", iosOutputDir, err)
 	} else if exist {
@@ -412,7 +422,7 @@ func main() {
 		fmt.Println()
 		log.Infof("Collecting android outputs")
 
-		apks, err := findByExt(androidOutputDir, "apk")
+		apks, err := findArtifact(androidOutputDir, "apk", compileStart)
 		if err != nil {
 			fail("Failed to find apks in dir (%s), error: %s", androidOutputDir, err)
 		}
