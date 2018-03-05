@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.1.0)
+## Changelog (Current version: 1.1.1)
 
 -----------------
+
+### 1.1.1 (2018 Mar 05)
+
+* [7849f3a] prepare for 1.1.1
+* [534a2dd] fix for find artifacts (#23)
 
 ### 1.1.0 (2018 Jan 19)
 
@@ -38,4 +43,4 @@
 
 -----------------
 
-Updated: 2018 Jan 19
+Updated: 2018 Mar 05
