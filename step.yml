@@ -3,12 +3,12 @@ summary: Archives your Cordova project
 description: |-
   Archives your Cordova project.
 
-  For first the step prepare your Cordova project by calling:
+  First, the step prepares your Cordova project by calling:
 
   - `cordova "platform" "rm" "<platform>"`
   - `cordova "platform" "add" "<platform>"`
 
-  then it archives the project by calling:
+  Then it archives the project by calling:
 
   - `cordova "build" "--debug|--release" "--device|--emulator" "<platform>" "--buildConfig=$BITRISE_CORDOVA_BUILD_CONFIGURATION"`
 website: https://github.com/bitrise-community/steps-cordova-archive
@@ -30,7 +30,7 @@ inputs:
     opts:
       title: "Platform to use in cordova-cli commands"
       description: |-
-        Specify this input to apply cordova-cli commands to desired platforms only.
+        Specify this input to apply cordova-cli commands to the desired platforms only.
 
         `cordova build [OTHER_PARAMS] <platform>`
 
@@ -63,14 +63,14 @@ inputs:
       is_required: true
   - build_config: $BITRISE_CORDOVA_BUILD_CONFIGURATION
     opts:
-      title: "Build configuration path, to describe code signing properties"
+      title: "Build configuration path to describe code signing properties"
       description: |-
         Path to the build configuration file (build.json), which describes code signing properties.
   - readd_platform: "true"
     opts:
-      title: "Should remove platforms as prepare step?"
+      title: "Should remove platforms as preparing the step?"
       description: |-
-        Specify whether to remove platforms and then re-add (overwrites some config.xml values).
+        Specify whether to remove platforms and then to re-add them (overwrites some config.xml values).
 
         `cordova platform rm <platform>`
       value_options:
@@ -83,8 +83,8 @@ inputs:
       description: |-
         The version of cordova you want to use.
 
-        If value is set to `latest`, the step will update to the latest cordova version.
-        Leave this input empty to use the preinstalled cordova version.
+        If the value is set to `latest`, the step will update to the latest cordova version.
+        Leave this input field empty to use the preinstalled cordova version.
   - workdir: $BITRISE_SOURCE_DIR
     opts:
       title: "Working directory"
