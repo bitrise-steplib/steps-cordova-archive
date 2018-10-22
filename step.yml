@@ -66,6 +66,19 @@ inputs:
       title: "Build configuration path, to describe code signing properties"
       description: |-
         Path to the build configuration file (build.json), which describes code signing properties.
+  - add_platform: "true"
+    opts:
+      title: "Should add platforms as prepare step?"
+      description: |-
+        Specify whether to add platforms during prepare. If false, prepare will be used.
+
+        `cordova platform add <platform>`
+        Or:
+        `cordova prepare`
+      value_options:
+      - "true"
+      - "false"
+      is_required: true
   - readd_platform: "true"
     opts:
       title: "Should remove platforms as prepare step?"
