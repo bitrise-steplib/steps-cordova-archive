@@ -36,6 +36,7 @@ type ConfigsModel struct {
 	Configuration  string
 	Target         string
 	BuildConfig    string
+	AddPlatform    string
 	ReAddPlatform  string
 	CordovaVersion string
 	WorkDir        string
