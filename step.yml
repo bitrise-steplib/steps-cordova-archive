@@ -70,11 +70,9 @@ inputs:
     opts:
       title: "Should add platforms as prepare step?"
       description: |-
-        Specify whether to add platforms during prepare. If false, prepare will be used.
+        Specify whether to add platforms during prepare. If false, prepare command will be used instead.
 
-        `cordova platform add <platform>`
-        Or:
-        `cordova prepare`
+        `cordova platform add <platform>` or `cordova prepare <platform>`
       value_options:
       - "true"
       - "false"
@@ -84,6 +82,8 @@ inputs:
       title: "Should remove platforms as prepare step?"
       description: |-
         Specify whether to remove platforms and then re-add (overwrites some config.xml values).
+
+        Only applies if _"Should add platforms as prepare step?"_ is `true`.
 
         `cordova platform rm <platform>`
       value_options:
