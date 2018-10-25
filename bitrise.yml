@@ -32,6 +32,7 @@ workflows:
     - path::./:
         title: Step Test
         inputs:
+        - options: --buildFlag="-UseModernBuildSystem=0"
         - target: emulator
     - script:
         title: Output test
