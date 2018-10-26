@@ -36,6 +36,7 @@ type ConfigsModel struct {
 	Configuration  string
 	Target         string
 	BuildConfig    string
+	AddPlatform    string
 	ReAddPlatform  string
 	CordovaVersion string
 	WorkDir        string
@@ -49,6 +50,7 @@ func createConfigsModelFromEnvs() ConfigsModel {
 		Configuration:  os.Getenv("configuration"),
 		Target:         os.Getenv("target"),
 		BuildConfig:    os.Getenv("build_config"),
+		AddPlatform:    os.Getenv("add_platform"),
 		ReAddPlatform:  os.Getenv("readd_platform"),
 		CordovaVersion: os.Getenv("cordova_version"),
 		WorkDir:        os.Getenv("workdir"),
@@ -63,6 +65,7 @@ func (configs ConfigsModel) print() {
 	log.Printf("- Configuration: %s", configs.Configuration)
 	log.Printf("- Target: %s", configs.Target)
 	log.Printf("- BuildConfig: %s", configs.BuildConfig)
+	log.Printf("- AddPlatform: %s", configs.AddPlatform)
 	log.Printf("- ReAddPlatform: %s", configs.ReAddPlatform)
 	log.Printf("- CordovaVersion: %s", configs.CordovaVersion)
 	log.Printf("- WorkDir: %s", configs.WorkDir)
@@ -77,6 +80,10 @@ func (configs ConfigsModel) validate() error {
 
 	if err := input.ValidateWithOptions(configs.Platform, "ios,android", "ios", "android"); err != nil {
 		return fmt.Errorf("Platform: %s", err)
+	}
+
+	if err := input.ValidateWithOptions(configs.AddPlatform, "true", "false"); err != nil {
+		return fmt.Errorf("AddPlatform: %s", err)
 	}
 
 	if err := input.ValidateWithOptions(configs.ReAddPlatform, "true", "false"); err != nil {
@@ -298,26 +305,38 @@ func main() {
 	fmt.Println()
 	log.Infof("Preparing project")
 
-	if configs.ReAddPlatform == "true" {
-		platformRemoveCmd := builder.PlatformCommand("rm")
-		platformRemoveCmd.SetStdout(os.Stdout)
-		platformRemoveCmd.SetStderr(os.Stderr)
+	if configs.AddPlatform == "true" {
+		if configs.ReAddPlatform == "true" {
+			platformRemoveCmd := builder.PlatformCommand("rm")
+			platformRemoveCmd.SetStdout(os.Stdout)
+			platformRemoveCmd.SetStderr(os.Stderr)
 
-		log.Donef("$ %s", platformRemoveCmd.PrintableCommandArgs())
+			log.Donef("$ %s", platformRemoveCmd.PrintableCommandArgs())
 
-		if err := platformRemoveCmd.Run(); err != nil {
-			fail("cordova failed, error: %s", err)
+			if err := platformRemoveCmd.Run(); err != nil {
+				fail("cordova remove platform failed, error: %s", err)
+			}
 		}
-	}
 
-	platformAddCmd := builder.PlatformCommand("add")
-	platformAddCmd.SetStdout(os.Stdout)
-	platformAddCmd.SetStderr(os.Stderr)
+		platformAddCmd := builder.PlatformCommand("add")
+		platformAddCmd.SetStdout(os.Stdout)
+		platformAddCmd.SetStderr(os.Stderr)
 
-	log.Donef("$ %s", platformAddCmd.PrintableCommandArgs())
+		log.Donef("$ %s", platformAddCmd.PrintableCommandArgs())
 
-	if err := platformAddCmd.Run(); err != nil {
-		fail("cordova failed, error: %s", err)
+		if err := platformAddCmd.Run(); err != nil {
+			fail("cordova add platform failed, error: %s", err)
+		}
+	} else {
+		platformPrepareCmd := builder.PlatformCommand("prepare")
+		platformPrepareCmd.SetStdout(os.Stdout)
+		platformPrepareCmd.SetStderr(os.Stderr)
+
+		log.Donef("$ %s", platformPrepareCmd.PrintableCommandArgs())
+
+		if err := platformPrepareCmd.Run(); err != nil {
+			fail("cordova prepare platform failed, error: %s", err)
+		}
 	}
 
 	// cordova build
@@ -333,7 +352,7 @@ func main() {
 	compileStart := time.Now()
 
 	if err := buildCmd.Run(); err != nil {
-		fail("cordova failed, error: %s", err)
+		fail("cordova build failed, error: %s", err)
 	}
 
 	// collect outputs
