@@ -1,6 +1,12 @@
-## Changelog (Current version: 1.1.1)
+## Changelog (Current version: 1.2.0)
 
 -----------------
+
+### 1.2.0 (2018 Oct 26)
+
+* [79695a9] Prepare for 1.2.0
+* [5a6b0bd] new add platform input
+* [a795384] Golint fix and UseModernBuildSystem=0 build option for the test (#28)
 
 ### 1.1.1 (2018 Mar 05)
 
@@ -43,4 +49,4 @@
 
 -----------------
 
-Updated: 2018 Mar 05
+Updated: 2018 Oct 26
