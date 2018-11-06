@@ -115,8 +115,6 @@ func moveAndExportOutputs(outputs []string, deployDir, envKey string, isOnlyCont
 				return "", err
 			}
 
-			log.Warnf("Output: %s is a symlink to: %s", output, resolvedPth)
-
 			if exist, err := pathutil.IsPathExists(resolvedPth); err != nil {
 				return "", err
 			} else if !exist {
@@ -144,7 +142,6 @@ func moveAndExportOutputs(outputs []string, deployDir, envKey string, isOnlyCont
 				return "", err
 			}
 		} else {
-			log.Warnf("Output: %s, isFIle", output)
 			if err := command.CopyFile(output, destinationPth); err != nil {
 				return "", err
 			}
@@ -391,7 +388,6 @@ func main() {
 			} else {
 				log.Donef("The dsym dir path is now available in the Environment Variable: %s (value: %s)", dsymDirPathEnvKey, exportedPth)
 
-				log.Warnf("exportedPth: %s", exportedPth)
 				zippedExportedPth := exportedPth + ".zip"
 				if err := ziputil.ZipDir(exportedPth, zippedExportedPth, false); err != nil {
 					fail("Failed to zip dsym dir (%s), error: %s", exportedPth, err)
@@ -411,7 +407,7 @@ func main() {
 		}
 
 		if len(apps) > 0 {
-			if exportedPth, err := moveAndExportOutputs(apps, configs.DeployDir, appDirPathEnvKey, false); err != nil {
+			if exportedPth, err := moveAndExportOutputs(apps, configs.DeployDir, appDirPathEnvKey, true); err != nil {
 				log.Warnf("Failed to export apps, error: %s", err)
 			} else {
 				log.Donef("The app dir path is now available in the Environment Variable: %s (value: %s)", appDirPathEnvKey, exportedPth)
