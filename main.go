@@ -101,7 +101,7 @@ func (configs ConfigsModel) validate() error {
 	return nil
 }
 
-func moveAndExportOutputs(outputs []string, deployDir, envKey string) (string, error) {
+func moveAndExportOutputs(outputs []string, deployDir, envKey string, isOnlyContent bool) (string, error) {
 	outputToExport := ""
 	for _, output := range outputs {
 		info, err := os.Lstat(output)
@@ -114,8 +114,6 @@ func moveAndExportOutputs(outputs []string, deployDir, envKey string) (string, e
 			if err != nil {
 				return "", err
 			}
-
-			log.Warnf("Output: %s is a symlink to: %s", output, resolvedPth)
 
 			if exist, err := pathutil.IsPathExists(resolvedPth); err != nil {
 				return "", err
@@ -140,7 +138,7 @@ func moveAndExportOutputs(outputs []string, deployDir, envKey string) (string, e
 		destinationPth := filepath.Join(deployDir, fileName)
 
 		if info.IsDir() {
-			if err := command.CopyDir(output, destinationPth, false); err != nil {
+			if err := command.CopyDir(output, destinationPth, isOnlyContent); err != nil {
 				return "", err
 			}
 		} else {
@@ -372,7 +370,7 @@ func main() {
 		}
 
 		if len(ipas) > 0 {
-			if exportedPth, err := moveAndExportOutputs(ipas, configs.DeployDir, ipaPathEnvKey); err != nil {
+			if exportedPth, err := moveAndExportOutputs(ipas, configs.DeployDir, ipaPathEnvKey, false); err != nil {
 				fail("Failed to export ipas, error: %s", err)
 			} else {
 				log.Donef("The ipa path is now available in the Environment Variable: %s (value: %s)", ipaPathEnvKey, exportedPth)
@@ -385,13 +383,13 @@ func main() {
 		}
 
 		if len(dsyms) > 0 {
-			if exportedPth, err := moveAndExportOutputs(dsyms, configs.DeployDir, dsymDirPathEnvKey); err != nil {
+			if exportedPth, err := moveAndExportOutputs(dsyms, configs.DeployDir, dsymDirPathEnvKey, true); err != nil {
 				fail("Failed to export dsyms, error: %s", err)
 			} else {
 				log.Donef("The dsym dir path is now available in the Environment Variable: %s (value: %s)", dsymDirPathEnvKey, exportedPth)
 
 				zippedExportedPth := exportedPth + ".zip"
-				if err := ziputil.ZipFile(exportedPth, zippedExportedPth); err != nil {
+				if err := ziputil.ZipDir(exportedPth, zippedExportedPth, false); err != nil {
 					fail("Failed to zip dsym dir (%s), error: %s", exportedPth, err)
 				}
 
@@ -409,7 +407,7 @@ func main() {
 		}
 
 		if len(apps) > 0 {
-			if exportedPth, err := moveAndExportOutputs(apps, configs.DeployDir, appDirPathEnvKey); err != nil {
+			if exportedPth, err := moveAndExportOutputs(apps, configs.DeployDir, appDirPathEnvKey, true); err != nil {
 				log.Warnf("Failed to export apps, error: %s", err)
 			} else {
 				log.Donef("The app dir path is now available in the Environment Variable: %s (value: %s)", appDirPathEnvKey, exportedPth)
@@ -447,7 +445,7 @@ func main() {
 		}
 
 		if len(apks) > 0 {
-			if exportedPth, err := moveAndExportOutputs(apks, configs.DeployDir, apkPathEnvKey); err != nil {
+			if exportedPth, err := moveAndExportOutputs(apks, configs.DeployDir, apkPathEnvKey, false); err != nil {
 				fail("Failed to export apks, error: %s", err)
 			} else {
 				log.Donef("The apk path is now available in the Environment Variable: %s (value: %s)", apkPathEnvKey, exportedPth)
