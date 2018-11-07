@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.2.0)
+## Changelog (Current version: 1.2.1)
 
 -----------------
+
+### 1.2.1 (2018 Nov 07)
+
+* [7faed8e] Prepare for 1.2.1
+* [bc6f948] .dsym and .app duplocated export fix (#29)
 
 ### 1.2.0 (2018 Oct 26)
 
@@ -49,4 +54,4 @@
 
 -----------------
 
-Updated: 2018 Oct 26
+Updated: 2018 Nov 07
