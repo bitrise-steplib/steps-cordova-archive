@@ -70,6 +70,10 @@ func (builder *Model) commandSlice(cmd ...string) []string {
 		cmdSlice = append(cmdSlice, builder.customOptions...)
 	}
 
+	if len(cmd) == 1 && cmd[0] == "platform" {
+		cmdSlice = append(cmdSlice, "--nosave")
+	}
+	
 	return cmdSlice
 }
 
