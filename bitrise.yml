@@ -8,6 +8,11 @@ app:
 
 workflows:
   test:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
+    - SAMPLE_APP_BRANCH: master
+    before_run:
+    - audit-this-step
     steps:
     - go-list:
     - golint:
@@ -16,31 +21,29 @@ workflows:
     after_run:
     - test-with-npm
     - test-with-yarn
+    - test-with-prepare-step
 
   test-with-npm:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
-    - SAMPLE_APP_BRANCH: master
-    - ADD_PLATFORMS: "true"
-    - USE_YARN: "false"
-    after_run:
-    - _common
-
-  test-with-npm-no-platform-add:
-    envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
-    - SAMPLE_APP_BRANCH: master
-    - ADD_PLATFORMS: "false"
+    - RUN_PREPARE_STEP: "false"
+    - RUN_PREPARE_IN_ARCHIVE: "true"
     - USE_YARN: "false"
     after_run:
     - _common
 
   test-with-yarn:
     envs:
-    - SAMPLE_APP_URL: https://github.com/lpusok/sample-apps-cordova-with-karma-jasmine.git/
-    - SAMPLE_APP_BRANCH: master
-    - ADD_PLATFORMS: "true"
+    - RUN_PREPARE_STEP: "false"
+    - RUN_PREPARE_IN_ARCHIVE: "true"
     - USE_YARN: "true"
+    after_run:
+    - _common
+
+  test-with-prepare-step:
+    envs:
+    - RUN_PREPARE_STEP: "true"
+    - RUN_PREPARE_IN_ARCHIVE: "false"
+    - USE_YARN: "false"
     after_run:
     - _common
 
@@ -69,18 +72,26 @@ workflows:
             #!/usr/bin/env bash
             # Yarn warns if package-lock.json exists, node_modules could be created by npm
             rm package-lock.json; rm -rf ./node_modules
+    - script:
+        # Needed to test cordova prepare
+        inputs:
+        - content: rm -rf ./platforms
     - yarn:
         run_if: '{{enveq "USE_YARN" "true"}}'
         inputs:
         - command: install
+    - cordova-prepare:
+        title: Cordova prepare
+        run_if: '{{enveq "RUN_PREPARE_STEP" "true"}}'
+        inputs:
+        - cordova_version: latest
     - path::./:
-        title: Step Test
+        title: Cordova archive
         inputs:
         - options: --buildFlag="-UseModernBuildSystem=0"
         - target: emulator
         - cordova_version: latest
-        - readd_platform: ${ADD_PLATFORMS}
-        - add_platform: ${ADD_PLATFORMS}
+        - run_cordova_prepare: ${RUN_PREPARE_IN_ARCHIVE}
     - script:
         title: Output test
         inputs:

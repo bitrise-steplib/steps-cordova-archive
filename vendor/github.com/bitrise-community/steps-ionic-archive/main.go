@@ -1,28 +1,26 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
-	"reflect"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/bitrise-community/steps-ionic-archive/ionic"
 	"github.com/bitrise-community/steps-ionic-archive/jsdependency"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/bitrise-io/go-utils/ziputil"
-	"github.com/bitrise-tools/go-steputils/input"
+	"github.com/bitrise-tools/go-steputils/stepconf"
 	"github.com/bitrise-tools/go-steputils/tools"
 	ver "github.com/hashicorp/go-version"
 	shellquote "github.com/kballard/go-shellquote"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -38,91 +36,44 @@ const (
 	apkPathListEnvKey = "BITRISE_APK_PATH_LIST"
 )
 
-// ConfigsModel ...
-type ConfigsModel struct {
-	Platform      string
-	Configuration string
-	Target        string
-	BuildConfig   string
-	Options       string
+type config struct {
+	Platform      string `env:"platform,opt['ios,android',ios,android]"`
+	Configuration string `env:"configuration,required"`
+	Target        string `env:"target,required"`
+	BuildConfig   string `env:"build_config"`
+	Options       string `env:"options"`
 
-	Username string
-	Password string
+	Username string `env:"ionic_username"`
+	Password string `env:"ionic_password"`
 
-	ReAddPlatform         string
-	IonicVersion          string
-	CordovaVersion        string
-	CordovaIosVersion     string
-	CordovaAndroidVersion string
+	RunPrepare     bool   `env:"run_ionic_prepare,opt[true,false]"`
+	IonicVersion   string `env:"ionic_version"`
+	CordovaVersion string `env:"cordova_version"`
 
-	WorkDir   string
-	DeployDir string
+	WorkDir   string `env:"workdir,dir"`
+	DeployDir string `env:"BITRISE_DEPLOY_DIR"`
 }
 
-func createConfigsModelFromEnvs() ConfigsModel {
-	return ConfigsModel{
-		Platform:      os.Getenv("platform"),
-		Configuration: os.Getenv("configuration"),
-		Target:        os.Getenv("target"),
-		BuildConfig:   os.Getenv("build_config"),
-		Options:       os.Getenv("options"),
-
-		Username: os.Getenv("ionic_username"),
-		Password: os.Getenv("ionic_password"),
-
-		ReAddPlatform:         os.Getenv("readd_platform"),
-		IonicVersion:          os.Getenv("ionic_version"),
-		CordovaVersion:        os.Getenv("cordova_version"),
-		CordovaIosVersion:     os.Getenv("cordova_ios_version"),
-		CordovaAndroidVersion: os.Getenv("cordova_android_version"),
-
-		WorkDir:   os.Getenv("workdir"),
-		DeployDir: os.Getenv("BITRISE_DEPLOY_DIR"),
+func installDependency(packageManager jsdependency.Tool, name string, version string) error {
+	fmt.Println()
+	log.Infof("Updating %s version to: %s", name, version)
+	cmdSlice, err := jsdependency.InstallGlobalDependencyCommand(packageManager, name, version)
+	if err != nil {
+		return fmt.Errorf("Failed to update %s version, error: %s", name, err)
 	}
-}
+	for i, cmd := range cmdSlice {
+		fmt.Println()
+		log.Donef("$ %s", cmd.PrintableCommandArgs())
+		fmt.Println()
 
-func (configs ConfigsModel) print() {
-	log.Infof("Configs:")
-	log.Printf("- Platform: %s", configs.Platform)
-	log.Printf("- Configuration: %s", configs.Configuration)
-	log.Printf("- Target: %s", configs.Target)
-	log.Printf("- BuildConfig: %s", configs.BuildConfig)
-	log.Printf("- Options: %s", configs.Options)
-
-	log.Printf("- Username: %s", input.SecureInput(configs.Username))
-	log.Printf("- Password: %s", input.SecureInput(configs.Password))
-
-	log.Printf("- ReAddPlatform: %s", configs.ReAddPlatform)
-	log.Printf("- IonicVersion: %s", configs.IonicVersion)
-	log.Printf("- CordovaVersion: %s", configs.CordovaVersion)
-	log.Printf("- CordovaIosVersion: %s", configs.CordovaIosVersion)
-	log.Printf("- CordovaAndroidVersion: %s", configs.CordovaAndroidVersion)
-
-	log.Printf("- WorkDir: %s", configs.WorkDir)
-	log.Printf("- DeployDir: %s", configs.DeployDir)
-}
-
-func (configs ConfigsModel) validate() error {
-	if err := input.ValidateIfDirExists(configs.WorkDir); err != nil {
-		return fmt.Errorf("WorkDir: %s", err)
+		// Yarn returns an error if the package is not added before removal, ignoring
+		if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil && !(packageManager == jsdependency.Yarn && i == 0) {
+			if errorutil.IsExitStatusError(err) {
+				return fmt.Errorf("Failed to update %s version: %s failed, output: %s", name, cmd.PrintableCommandArgs(), out)
+			}
+			return fmt.Errorf("Failed to update %s version: %s failed, error: %s", name, cmd.PrintableCommandArgs(), err)
+		}
 	}
-
-	if err := input.ValidateWithOptions(configs.Platform, "ios,android", "ios", "android"); err != nil {
-		return fmt.Errorf("Platform: %s", err)
-	}
-
-	if err := input.ValidateWithOptions(configs.ReAddPlatform, "true", "false"); err != nil {
-		return fmt.Errorf("ReAddPlatform: %s", err)
-	}
-
-	if err := input.ValidateIfNotEmpty(configs.Configuration); err != nil {
-		return fmt.Errorf("Configuration: %s", err)
-	}
-
-	if err := input.ValidateIfNotEmpty(configs.Target); err != nil {
-		return fmt.Errorf("Target: %s", err)
-	}
-
 	return nil
 }
 
@@ -194,62 +145,9 @@ func moveAndExportOutputs(outputs []string, deployDir, envKey string, envListKey
 	return outputToExport, APKPaths, nil
 }
 
-func ionicVersion() (*ver.Version, error) {
-	cmd := command.New("ionic", "-v")
-	cmd.SetStdin(strings.NewReader("Y"))
-	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
-	if err != nil {
-		return nil, err
-	}
-
-	// fix for ionic-cli intercative version output: `[1000D[K3.2.0`
-	pattern := `(?P<version>\d+\.\d+\.\d+)`
-
-	reader := strings.NewReader(out)
-	scanner := bufio.NewScanner(reader)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if match := regexp.MustCompile(pattern).FindStringSubmatch(line); len(match) == 2 {
-			versionStr := match[1]
-			version, err := ver.NewVersion(versionStr)
-			if err != nil {
-				return nil, errors.Wrapf(err, "failed to parse version: %s", versionStr)
-			}
-			return version, nil
-		}
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-
-	return nil, fmt.Errorf("output: %s", out)
-}
-
-func cordovaVersion() (*ver.Version, error) {
-	cmd := command.New("cordova", "-v")
-	out, err := cmd.RunAndReturnTrimmedCombinedOutput()
-	if err != nil {
-		return nil, err
-	}
-	out = strings.Split(out, "(")[0]
-	out = strings.TrimSpace(out)
-
-	version, err := ver.NewVersion(out)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to parse version: %s", out)
-	}
-	return version, nil
-}
-
 func fail(format string, v ...interface{}) {
 	log.Errorf(format, v...)
 	os.Exit(1)
-}
-
-func getField(c ConfigsModel, field string) string {
-	r := reflect.ValueOf(c)
-	f := reflect.Indirect(r).FieldByName(field)
-	return string(f.String())
 }
 
 func findArtifact(dir, ext string, buildStart time.Time) ([]string, error) {
@@ -269,14 +167,13 @@ func findArtifact(dir, ext string, buildStart time.Time) ([]string, error) {
 }
 
 func main() {
-	configs := createConfigsModelFromEnvs()
-
-	fmt.Println()
-	configs.print()
-
-	if err := configs.validate(); err != nil {
-		fail("Issue with input: %s", err)
+	// Parse inputs
+	var configs config
+	if err := stepconf.Parse(&configs); err != nil {
+		fail("Could not create config: %s", err)
 	}
+	fmt.Println()
+	stepconf.Print(configs)
 
 	// Change dir to working directory
 	workDir, err := pathutil.AbsPath(configs.WorkDir)
@@ -307,37 +204,24 @@ func main() {
 	}
 
 	// Update cordova and ionic version
-	packageManager := jsdependency.DetectTool(workDir)
+	packageManager, err := jsdependency.DetectTool(workDir)
+	if err != nil {
+		log.Warnf("%s", err)
+	}
 	log.Printf("Js package manager used: %s", packageManager)
 	if configs.CordovaVersion != "" {
-		fmt.Println()
-		log.Infof("Updating cordova version to: %s", configs.CordovaVersion)
-
-		// Yarn returns an error if the package is not added before removal, ignoring
-		if err := jsdependency.Remove(packageManager, jsdependency.Local, "cordova"); err != nil && packageManager != jsdependency.Yarn {
-			fail("Failed to remove local cordova, error: %s", err)
-		}
-
-		if err := jsdependency.Add(packageManager, jsdependency.Global, "cordova@"+configs.CordovaVersion); err != nil {
-			fail("Failed to install cordova, error: %s", err)
+		if err := installDependency(packageManager, "cordova", configs.CordovaVersion); err != nil {
+			fail("%s", err)
 		}
 	}
-
 	if configs.IonicVersion != "" {
-		fmt.Println()
-		log.Infof("Updating ionic version to: %s", configs.IonicVersion)
-
-		if err := jsdependency.Remove(packageManager, jsdependency.Local, "cordova"); err != nil && packageManager != jsdependency.Yarn {
-			fail("Failed to remove local ionic, error: %s", err)
-		}
-
-		if err := jsdependency.Add(packageManager, jsdependency.Global, "ionic@"+configs.IonicVersion); err != nil {
-			fail("Failed to install ionic, error: %s", err)
+		if err := installDependency(packageManager, "ionic", configs.IonicVersion); err != nil {
+			fail("%s", err)
 		}
 	}
 
 	// Print cordova and ionic version
-	cordovaVer, err := cordovaVersion()
+	cordovaVer, err := ionic.CordovaVersion()
 	if err != nil {
 		fail("Failed to get cordova version, error: %s", err)
 	}
@@ -345,7 +229,7 @@ func main() {
 	fmt.Println()
 	log.Printf("cordova version: %s", colorstring.Green(cordovaVer.String()))
 
-	ionicVer, err := ionicVersion()
+	ionicVer, err := ionic.Version()
 	if err != nil {
 		fail("Failed to get ionic version, error: %s", err)
 	}
@@ -361,25 +245,34 @@ func main() {
 	if ionicVerConstraint.Check(ionicVer) {
 		fmt.Println()
 		log.Infof("Installing cordova and angular plugins")
-		if err := jsdependency.Add(packageManager, jsdependency.Local, "@ionic/cli-plugin-ionic-angular@latest", "@ionic/cli-plugin-cordova@latest"); err != nil {
-			fail("command failed, error: %s", err)
+		cmd, err := jsdependency.AddCommand(packageManager, jsdependency.Local, "@ionic/cli-plugin-ionic-angular@latest", "@ionic/cli-plugin-cordova@latest")
+		if err != nil {
+			fail("%s", err)
+		}
+		fmt.Println()
+		log.Donef("$ %s", cmd.PrintableCommandArgs())
+		fmt.Println()
+
+		if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
+			if errorutil.IsExitStatusError(err) {
+				fail("Failed to install: %s failed, output: %s", cmd.PrintableCommandArgs(), out)
+			}
+			fail("Failed to install: %s failed, error: %s", cmd.PrintableCommandArgs(), err)
 		}
 	}
 
-	//
 	// ionic login
 	if configs.Username != "" && configs.Password != "" {
 		fmt.Println()
 		log.Infof("Ionic login")
 
-		cmdArgs := []string{"ionic", "login", configs.Username, configs.Password}
-		cmd := command.New(cmdArgs[0], cmdArgs[1:]...)
+		cmd := ionic.LoginCommand(configs.Username, configs.Password)
 		cmd.SetStdout(os.Stdout).SetStderr(os.Stderr).SetStdin(strings.NewReader("y"))
 
 		log.Donef("$ ionic login *** ***")
 
 		if err := cmd.Run(); err != nil {
-			fail("command failed, error: %s", err)
+			fail("ionic login command failed, error: %s", err)
 		}
 	}
 
@@ -395,57 +288,14 @@ func main() {
 	fmt.Println()
 	log.Infof("Building project")
 
-	// platform rm
-	if configs.ReAddPlatform == "true" {
-		for _, platform := range platforms {
-			cmdArgs := []string{"ionic"}
-			if ionicMajorVersion > 2 {
-				cmdArgs = append(cmdArgs, "cordova")
-			}
+	if configs.RunPrepare {
+		cmd := ionic.PrepareCommand(ionicMajorVersion)
+		cmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
 
-			cmdArgs = append(cmdArgs, "platform", "rm")
+		log.Donef("$ %s", cmd.PrintableCommandArgs())
 
-			cmdArgs = append(cmdArgs, platform)
-
-			cmd := command.New(cmdArgs[0], cmdArgs[1:]...)
-			cmd.SetStdout(os.Stdout).SetStderr(os.Stderr).SetStdin(strings.NewReader("y"))
-
-			log.Donef("$ %s", cmd.PrintableCommandArgs())
-
-			if err := cmd.Run(); err != nil {
-				fail("command failed, error: %s", err)
-			}
-		}
-	}
-
-	{
-		// platform add
-		for _, platform := range platforms {
-			cmdArgs := []string{"ionic"}
-			if ionicMajorVersion > 2 {
-				cmdArgs = append(cmdArgs, "cordova")
-			}
-
-			cmdArgs = append(cmdArgs, "platform", "add")
-
-			platformVersion := platform
-			pv := getField(configs, "Cordova"+strings.Title(platform)+"Version")
-			if pv == "master" {
-				platformVersion = "https://github.com/apache/cordova-" + platform + ".git"
-			} else if pv != "" {
-				platformVersion = platform + "@" + pv
-			}
-
-			cmdArgs = append(cmdArgs, platformVersion)
-
-			cmd := command.New(cmdArgs[0], cmdArgs[1:]...)
-			cmd.SetStdout(os.Stdout).SetStderr(os.Stderr).SetStdin(strings.NewReader("y"))
-
-			log.Donef("$ %s", cmd.PrintableCommandArgs())
-
-			if err := cmd.Run(); err != nil {
-				fail("command failed, error: %s", err)
-			}
+		if err := cmd.Run(); err != nil {
+			fail("ionic prepare command %s failed, error: %s", cmd.PrintableCommandArgs(), err)
 		}
 	}
 

@@ -98,16 +98,14 @@ inputs:
 
         If value is set to `latest`, the step will update to the latest ionic version.
         Leave this input empty to use the preinstalled ionic version.
-  - readd_platform: "true"
+  - run_ionic_prepare: "true"
     opts:
-      title: "Should remove platforms as prepare step?"
+      title: "Should `ionic cordova prepare` be executed before `ionic cordova build`?"
       description: |-
-        Specify whether to remove platforms and then re-add (overwrites some config.xml values).
-        `ionic [cordova] platform rm <platform>`
-      value_options:
-      - "true"
-      - "false"
-      is_required: true
+        It should be set to false if ionic-prepare step is used.
+
+        - false: `ionic cordova build`
+        - true: `ionic cordova prepare --no-build` followed by `ionic cordova build`
   - cordova_version: 
     opts:
       title: "Cordova version"
@@ -116,36 +114,6 @@ inputs:
 
         If value is set to `latest`, the step will update to the latest cordova version.
         Leave this input empty to use the preinstalled cordova version.
-  - cordova_ios_version: 
-    opts:
-      title: "iOS version"
-      description: |-
-        The version of cordova-ios plugin you want to use.
-
-        Should be one of the following:
-
-        - x.x.x - [A specific release](https://github.com/apache/cordova-ios/releases) equivalent to doing `ionic cordova platform add ios@x.x.x`
-
-        - master - will use the master branch of the repo, equivalent to doing `ionic cordova platform add https://github.com/apache/cordova-ios.git`
-
-        - latest - The step will update to the latest cordova-ios version `ionic cordova platform add ios@latest`.
-
-        - empty - Uses the pinned cordova-ios version.
-  - cordova_android_version: 
-    opts:
-      title: "Android version"
-      description: |-
-        The version of cordova-android plugin you want to use.
-
-        Should be one of the following:
-
-        - x.x.x - [A specific release](https://github.com/apache/cordova-android/releases) equivalent to doing `ionic cordova platform add android@x.x.x`
-
-        - master - will use the master branch of the repo, equivalent to doing `ionic cordova platform add https://github.com/apache/cordova-android.git`
-
-        - latest - The step will update to the latest cordova-android version `ionic cordova platform add android@latest`.
-
-        - empty - Uses the pinned cordova-android version.
   - workdir: $BITRISE_SOURCE_DIR
     opts:
       title: "Working directory"
