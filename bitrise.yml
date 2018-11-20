@@ -4,7 +4,6 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 app:
   envs:
   - STEP_VERSION: 1.2.1
-  - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
 
 workflows:
   test:
@@ -13,6 +12,32 @@ workflows:
     - golint:
     - errcheck:
     - go-test:
+    after_run:
+    - test-npm
+    - test-yarn
+
+  test-npm:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
+    - SAMPLE_APP_BRANCH: master
+    - ADD_PLATFORMS: "true"
+    - USE_YARN: "false"
+    after_run:
+    - _common
+
+  test-yarn:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/lpusok/sample-apps-cordova-with-karma-jasmine.git/
+    - SAMPLE_APP_BRANCH: yarn-test-preadded-platforms
+    - ADD_PLATFORMS: "false"
+    - USE_YARN: "true"
+    after_run:
+    - _common
+
+  _common:
+    envs:
+    - ADD_PLATFORMS: ${ADD_PLATFORMS}
+    steps:
     - script:
         inputs:
         - content: |-
@@ -28,12 +53,25 @@ workflows:
         - is_create_path: true
     - script:
         inputs:
-        - content: git clone "${SAMPLE_APP_URL}" .
+        - content: git clone --single-branch -b "${SAMPLE_APP_BRANCH}"  "${SAMPLE_APP_URL}" .
+    - script:
+        run_if: '{{enveq "USE_YARN" "true"}}'
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            rm package-lock.json; rm -rf ./node_modules
+    - yarn:
+        run_if: '{{enveq "USE_YARN" "true"}}'
+        inputs:
+        - command: install
     - path::./:
         title: Step Test
         inputs:
         - options: --buildFlag="-UseModernBuildSystem=0"
         - target: emulator
+        - cordova_version: latest
+        - readd_platform: ${ADD_PLATFORMS}
+        - add_platform: ${ADD_PLATFORMS}
     - script:
         title: Output test
         inputs:
@@ -55,6 +93,10 @@ workflows:
                 echo "Does not exist: apk file's path"
                 exit 1
             fi
+    - change-workdir:
+        title: Change back workdir
+        inputs:
+        - path: ..
 
   # ----------------------------------------------------------------
   # --- Utility workflows

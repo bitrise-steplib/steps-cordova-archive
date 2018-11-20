@@ -109,7 +109,7 @@ inputs:
       description: |-
         Root directory of your Cordova project, where your Cordova config.xml exists.
       is_required: true
-  - options:
+  - options: --buildFlag="-UseModernBuildSystem=0"
     opts:
       title: "Options to append to the cordova-cli build command"
       description: |-
