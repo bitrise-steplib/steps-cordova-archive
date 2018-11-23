@@ -13,10 +13,10 @@ workflows:
     - errcheck:
     - go-test:
     after_run:
-    - test-npm
-    - test-yarn
+    - test-with-npm
+    - test-with-yarn
 
-  test-npm:
+  test-with-npm:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
     - SAMPLE_APP_BRANCH: master
@@ -25,7 +25,7 @@ workflows:
     after_run:
     - _common
 
-  test-yarn:
+  test-with-yarn:
     envs:
     - SAMPLE_APP_URL: https://github.com/lpusok/sample-apps-cordova-with-karma-jasmine.git/
     - SAMPLE_APP_BRANCH: yarn-test-preadded-platforms
@@ -35,8 +35,6 @@ workflows:
     - _common
 
   _common:
-    envs:
-    - ADD_PLATFORMS: ${ADD_PLATFORMS}
     steps:
     - script:
         inputs:

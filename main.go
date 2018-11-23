@@ -241,9 +241,7 @@ func main() {
 		fmt.Println()
 		log.Infof("Updating cordova version to: %s", configs.CordovaVersion)
 		packageName := "cordova"
-		if configs.CordovaVersion != "latest" {
-			packageName += configs.CordovaVersion
-		}
+		packageName += "@" + configs.CordovaVersion
 
 		log.Printf("Will check for JS package manager, in directory: %s", workDir)
 		packageManager := detectJsPackageManager(workDir)
