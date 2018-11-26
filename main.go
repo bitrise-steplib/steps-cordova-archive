@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/bitrise-community/steps-cordova-archive/cordova"
+	"github.com/bitrise-community/steps-ionic-archive/jspackage"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
@@ -243,9 +244,9 @@ func main() {
 		packageName := "cordova"
 		packageName += "@" + configs.CordovaVersion
 
-		log.Printf("Will check for JS package manager, in directory: %s", workDir)
-		packageManager := detectJsPackageManager(workDir)
-		if err := addJsPackages(packageManager, true, packageName); err != nil {
+		packageManager := jspackage.DetectManager(workDir)
+		log.TPrintf("Js package manager used: %s", packageManager)
+		if err := jspackage.Add(packageManager, true, packageName); err != nil {
 			fail(err.Error())
 		}
 	}
