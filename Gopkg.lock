@@ -2,26 +2,60 @@
 
 
 [[projects]]
+  branch = "add-yarn-support"
+  digest = "1:742c84069200601ed411328f5fb893ee3d6dbdd5585ccaaff729ee54e95c7bc0"
+  name = "github.com/bitrise-community/steps-ionic-archive"
+  packages = ["jspackage"]
+  pruneopts = ""
+  revision = "f472108f1e7d316da5eb6daf401186e278060419"
+
+[[projects]]
   branch = "master"
+  digest = "1:6083fc4e90fe661aad326c42fa16fb85774cb55711560d1208c82ff290534836"
   name = "github.com/bitrise-io/go-utils"
-  packages = ["colorstring","command","errorutil","log","pathutil","ziputil"]
-  revision = "b33f6bcef9b50045d7e62364b354584afc3ee329"
+  packages = [
+    "colorstring",
+    "command",
+    "errorutil",
+    "log",
+    "pathutil",
+    "ziputil",
+  ]
+  pruneopts = ""
+  revision = "2a09aab8380d7842750328aebd5671bcccea89c8"
 
 [[projects]]
   branch = "master"
+  digest = "1:3511df2e558e2755b01ce5670ddc536fa031e63e5b4974bb0f35aac53704f06e"
   name = "github.com/bitrise-tools/go-steputils"
-  packages = ["input","tools"]
-  revision = "fde82e0ff3c0643076950c8642142207845eaa39"
+  packages = [
+    "input",
+    "tools",
+  ]
+  pruneopts = ""
+  revision = "ec226b2359fcd806be64f0ad2217d8e741a1ff11"
 
 [[projects]]
   branch = "master"
+  digest = "1:63e7368fcf6b54804076eaec26fd9cf0c4466166b272393db4b93102e1e962df"
   name = "github.com/kballard/go-shellquote"
   packages = ["."]
-  revision = "cd60e84ee657ff3dc51de0b4f55dd299a3e136f2"
+  pruneopts = ""
+  revision = "95032a82bc518f77982ea72343cc1ade730072f0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2d5722bde8b93a3735b643e894d880bc492e0282ace2ff6340134ea7f3a3af5b"
+  input-imports = [
+    "github.com/bitrise-community/steps-ionic-archive/jspackage",
+    "github.com/bitrise-io/go-utils/colorstring",
+    "github.com/bitrise-io/go-utils/command",
+    "github.com/bitrise-io/go-utils/log",
+    "github.com/bitrise-io/go-utils/pathutil",
+    "github.com/bitrise-io/go-utils/ziputil",
+    "github.com/bitrise-tools/go-steputils/input",
+    "github.com/bitrise-tools/go-steputils/tools",
+    "github.com/kballard/go-shellquote",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
