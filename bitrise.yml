@@ -26,11 +26,20 @@ workflows:
     after_run:
     - _common
 
+  test-with-npm-no-platform-add:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
+    - SAMPLE_APP_BRANCH: master
+    - ADD_PLATFORMS: "false"
+    - USE_YARN: "false"
+    after_run:
+    - _common
+
   test-with-yarn:
     envs:
     - SAMPLE_APP_URL: https://github.com/lpusok/sample-apps-cordova-with-karma-jasmine.git/
-    - SAMPLE_APP_BRANCH: yarn-test-preadded-platforms
-    - ADD_PLATFORMS: "false"
+    - SAMPLE_APP_BRANCH: master
+    - ADD_PLATFORMS: "true"
     - USE_YARN: "true"
     after_run:
     - _common
@@ -58,6 +67,7 @@ workflows:
         inputs:
         - content: |-
             #!/usr/bin/env bash
+            rm -rf ./platforms
             rm package-lock.json; rm -rf ./node_modules
     - yarn:
         run_if: '{{enveq "USE_YARN" "true"}}'

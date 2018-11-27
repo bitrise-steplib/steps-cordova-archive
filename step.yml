@@ -115,7 +115,8 @@ inputs:
       description: |-
         Use this input to specify custom options, to append to the end of the cordova-cli build command.
 
-        For Xcode 10 build issues add `--buildFlag="-UseModernBuildSystem=0"` to options string.
+        Cordova does not yet support the new build system made default in XCode 10 (https://github.com/apache/cordova-ios/issues/407).
+        To use the legacy build system add `--buildFlag="-UseModernBuildSystem=0"` to the options string.
 
         Example:
         - `--browserify`

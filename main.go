@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/bitrise-community/steps-cordova-archive/cordova"
-	"github.com/bitrise-community/steps-ionic-archive/jspackage"
+	"github.com/bitrise-community/steps-ionic-archive/jsdependency"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
@@ -244,10 +244,15 @@ func main() {
 		packageName := "cordova"
 		packageName += "@" + configs.CordovaVersion
 
-		packageManager := jspackage.DetectManager(workDir)
-		log.TPrintf("Js package manager used: %s", packageManager)
-		if err := jspackage.Add(packageManager, true, packageName); err != nil {
-			fail(err.Error())
+		packageManager := jsdependency.DetectTool(workDir)
+		log.Printf("Js package manager used: %s", packageManager)
+
+		if err := jsdependency.Remove(packageManager, jsdependency.Local, "cordova"); err != nil && packageManager != jsdependency.Yarn {
+			fail("Failed to remove local cordova, err: %s", err)
+		}
+
+		if err := jsdependency.Add(packageManager, jsdependency.Global, packageName); err != nil {
+			fail("Failed to install cordova, err: %s", err)
 		}
 	}
 
