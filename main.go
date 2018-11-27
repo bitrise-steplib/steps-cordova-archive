@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,8 +14,9 @@ import (
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/bitrise-io/go-utils/ziputil"
-	"github.com/bitrise-tools/go-steputils/input"
+	"github.com/bitrise-tools/go-steputils/stepconf"
 	"github.com/bitrise-tools/go-steputils/tools"
 	"github.com/kballard/go-shellquote"
 )
@@ -31,75 +33,17 @@ const (
 	apkPathEnvKey = "BITRISE_APK_PATH"
 )
 
-// ConfigsModel ...
-type ConfigsModel struct {
-	Platform       string
-	Configuration  string
-	Target         string
-	BuildConfig    string
-	AddPlatform    string
-	ReAddPlatform  string
-	CordovaVersion string
-	WorkDir        string
-	Options        string
-	DeployDir      string
-}
-
-func createConfigsModelFromEnvs() ConfigsModel {
-	return ConfigsModel{
-		Platform:       os.Getenv("platform"),
-		Configuration:  os.Getenv("configuration"),
-		Target:         os.Getenv("target"),
-		BuildConfig:    os.Getenv("build_config"),
-		AddPlatform:    os.Getenv("add_platform"),
-		ReAddPlatform:  os.Getenv("readd_platform"),
-		CordovaVersion: os.Getenv("cordova_version"),
-		WorkDir:        os.Getenv("workdir"),
-		Options:        os.Getenv("options"),
-		DeployDir:      os.Getenv("BITRISE_DEPLOY_DIR"),
-	}
-}
-
-func (configs ConfigsModel) print() {
-	log.Infof("Configs:")
-	log.Printf("- Platform: %s", configs.Platform)
-	log.Printf("- Configuration: %s", configs.Configuration)
-	log.Printf("- Target: %s", configs.Target)
-	log.Printf("- BuildConfig: %s", configs.BuildConfig)
-	log.Printf("- AddPlatform: %s", configs.AddPlatform)
-	log.Printf("- ReAddPlatform: %s", configs.ReAddPlatform)
-	log.Printf("- CordovaVersion: %s", configs.CordovaVersion)
-	log.Printf("- WorkDir: %s", configs.WorkDir)
-	log.Printf("- Options: %s", configs.Options)
-	log.Printf("- DeployDir: %s", configs.DeployDir)
-}
-
-func (configs ConfigsModel) validate() error {
-	if err := input.ValidateIfDirExists(configs.WorkDir); err != nil {
-		return fmt.Errorf("WorkDir: %s", err)
-	}
-
-	if err := input.ValidateWithOptions(configs.Platform, "ios,android", "ios", "android"); err != nil {
-		return fmt.Errorf("Platform: %s", err)
-	}
-
-	if err := input.ValidateWithOptions(configs.AddPlatform, "true", "false"); err != nil {
-		return fmt.Errorf("AddPlatform: %s", err)
-	}
-
-	if err := input.ValidateWithOptions(configs.ReAddPlatform, "true", "false"); err != nil {
-		return fmt.Errorf("ReAddPlatform: %s", err)
-	}
-
-	if err := input.ValidateIfNotEmpty(configs.Configuration); err != nil {
-		return fmt.Errorf("Configuration: %s", err)
-	}
-
-	if err := input.ValidateIfNotEmpty(configs.Target); err != nil {
-		return fmt.Errorf("Target: %s", err)
-	}
-
-	return nil
+type config struct {
+	Platform       string `env:"platform,opt['ios,android',ios,android]"`
+	Configuration  string `env:"configuration,required"`
+	Target         string `env:"target,required"`
+	BuildConfig    string `env:"build_config"`
+	AddPlatform    string `env:"add_platform,opt[true,false]"`
+	ReAddPlatform  string `env:"readd_platform,opt[true,false]"`
+	CordovaVersion string `env:"cordova_version"`
+	WorkDir        string `env:"workdir,dir"`
+	Options        string `env:"options"`
+	DeployDir      string `env:"BITRISE_DEPLOY_DIR"`
 }
 
 func moveAndExportOutputs(outputs []string, deployDir, envKey string, isOnlyContent bool) (string, error) {
@@ -193,20 +137,35 @@ func findArtifact(rootDir, ext string, buildStart time.Time) ([]string, error) {
 	return matches, nil
 }
 
+func checkBuildProducts(apks []string, apps []string, ipas []string, platforms []string, target string) error {
+	// if android in platforms
+	if len(apks) == 0 && sliceutil.IsStringInSlice("android", platforms) {
+		return errors.New("No apk generated")
+	}
+	// if ios in platforms
+	if sliceutil.IsStringInSlice("ios", platforms) {
+		if len(apps) == 0 && target == "emulator" {
+			return errors.New("No apk generated")
+		}
+		if len(ipas) == 0 && target == "device" {
+			return errors.New("no ipa generated")
+		}
+	}
+	return nil
+}
+
 func fail(format string, v ...interface{}) {
 	log.Errorf(format, v...)
 	os.Exit(1)
 }
 
 func main() {
-	configs := createConfigsModelFromEnvs()
-
-	fmt.Println()
-	configs.print()
-
-	if err := configs.validate(); err != nil {
-		fail("Issue with input: %s", err)
+	var configs config
+	if err := stepconf.Parse(&configs); err != nil {
+		fail("Could not create config: %s", err)
 	}
+	fmt.Println()
+	stepconf.Print(configs)
 
 	// Change dir to working directory
 	workDir, err := pathutil.AbsPath(configs.WorkDir)
@@ -347,6 +306,7 @@ func main() {
 	}
 
 	// collect outputs
+	var ipas, apps []string
 	iosOutputDirExist := false
 	iosOutputDir := filepath.Join(workDir, "platforms", "ios", "build", configs.Target)
 	if exist, err := pathutil.IsDirExists(iosOutputDir); err != nil {
@@ -357,7 +317,7 @@ func main() {
 		fmt.Println()
 		log.Infof("Collecting ios outputs")
 
-		ipas, err := findArtifact(iosOutputDir, "ipa", compileStart)
+		ipas, err = findArtifact(iosOutputDir, "ipa", compileStart)
 		if err != nil {
 			fail("Failed to find ipas in dir (%s), error: %s", iosOutputDir, err)
 		}
@@ -394,7 +354,7 @@ func main() {
 			}
 		}
 
-		apps, err := findArtifact(iosOutputDir, "app", compileStart)
+		apps, err = findArtifact(iosOutputDir, "app", compileStart)
 		if err != nil {
 			fail("Failed to find apps in dir (%s), error: %s", iosOutputDir, err)
 		}
@@ -419,6 +379,7 @@ func main() {
 		}
 	}
 
+	var apks []string
 	androidOutputDirExist := false
 	// examples for apk paths:
 	// PROJECT_ROOT/platforms/android/app/build/outputs/apk/debug/app-debug.apk
@@ -432,7 +393,7 @@ func main() {
 		fmt.Println()
 		log.Infof("Collecting android outputs")
 
-		apks, err := findArtifact(androidOutputDir, "apk", compileStart)
+		apks, err = findArtifact(androidOutputDir, "apk", compileStart)
 		if err != nil {
 			fail("Failed to find apks in dir (%s), error: %s", androidOutputDir, err)
 		}
@@ -449,5 +410,9 @@ func main() {
 	if !iosOutputDirExist && !androidOutputDirExist {
 		log.Warnf("No ios nor android platform's output dir exist")
 		fail("No output generated")
+	}
+
+	if err := checkBuildProducts(apks, apps, ipas, platforms, configs.Target); err != nil {
+		fail("Build outputs missing: %s", err)
 	}
 }
