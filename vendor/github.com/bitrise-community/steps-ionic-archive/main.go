@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bitrise-community/steps-ionic-archive/jspackage"
+	"github.com/bitrise-community/steps-ionic-archive/jsdependency"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
@@ -307,18 +307,18 @@ func main() {
 	}
 
 	// Update cordova and ionic version
-	packageManager := jspackage.DetectManager(workDir)
-	log.TPrintf("Js package manager used: %s", packageManager)
+	packageManager := jsdependency.DetectTool(workDir)
+	log.Printf("Js package manager used: %s", packageManager)
 	if configs.CordovaVersion != "" {
 		fmt.Println()
 		log.Infof("Updating cordova version to: %s", configs.CordovaVersion)
 
 		// Yarn returns an error if the package is not added before removal, ignoring
-		if err := jspackage.Remove(packageManager, false, "cordova"); err != nil && packageManager != jspackage.Yarn {
-			fail("Failed to remove cordova, error: %s", err)
+		if err := jsdependency.Remove(packageManager, jsdependency.Local, "cordova"); err != nil && packageManager != jsdependency.Yarn {
+			fail("Failed to remove local cordova, error: %s", err)
 		}
 
-		if err := jspackage.Add(packageManager, true, "cordova@"+configs.CordovaVersion); err != nil {
+		if err := jsdependency.Add(packageManager, jsdependency.Global, "cordova@"+configs.CordovaVersion); err != nil {
 			fail("Failed to install cordova, error: %s", err)
 		}
 	}
@@ -327,14 +327,12 @@ func main() {
 		fmt.Println()
 		log.Infof("Updating ionic version to: %s", configs.IonicVersion)
 
-		if err := jspackage.Add(packageManager, true, "ionic@"+configs.IonicVersion); err != nil {
-			fail("Failed to install ionic, error: %s", err)
+		if err := jsdependency.Remove(packageManager, jsdependency.Local, "cordova"); err != nil && packageManager != jsdependency.Yarn {
+			fail("Failed to remove local ionic, error: %s", err)
 		}
 
-		fmt.Println()
-		log.Infof("Installing local ionic cli")
-		if err := jspackage.Add(packageManager, false, "ionic@"+configs.IonicVersion); err != nil {
-			fail("command failed, error: %s", err)
+		if err := jsdependency.Add(packageManager, jsdependency.Global, "ionic@"+configs.IonicVersion); err != nil {
+			fail("Failed to install ionic, error: %s", err)
 		}
 	}
 
@@ -363,7 +361,7 @@ func main() {
 	if ionicVerConstraint.Check(ionicVer) {
 		fmt.Println()
 		log.Infof("Installing cordova and angular plugins")
-		if err := jspackage.Add(packageManager, false, "@ionic/cli-plugin-ionic-angular@latest", "@ionic/cli-plugin-cordova@latest"); err != nil {
+		if err := jsdependency.Add(packageManager, jsdependency.Local, "@ionic/cli-plugin-ionic-angular@latest", "@ionic/cli-plugin-cordova@latest"); err != nil {
 			fail("command failed, error: %s", err)
 		}
 	}

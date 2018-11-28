@@ -2,12 +2,12 @@
 
 
 [[projects]]
-  branch = "add-yarn-support"
-  digest = "1:742c84069200601ed411328f5fb893ee3d6dbdd5585ccaaff729ee54e95c7bc0"
+  branch = "master"
+  digest = "1:e876f64ed2a9b807f0cad5cb5227a8a11afd3da35e109d9ffb262ed6a62c5a8f"
   name = "github.com/bitrise-community/steps-ionic-archive"
-  packages = ["jspackage"]
+  packages = ["jsdependency"]
   pruneopts = ""
-  revision = "f472108f1e7d316da5eb6daf401186e278060419"
+  revision = "2ba6ba5479a46c69e75b10194187e2ae84ee189f"
 
 [[projects]]
   branch = "master"
@@ -47,7 +47,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/bitrise-community/steps-ionic-archive/jspackage",
+    "github.com/bitrise-community/steps-ionic-archive/jsdependency",
     "github.com/bitrise-io/go-utils/colorstring",
     "github.com/bitrise-io/go-utils/command",
     "github.com/bitrise-io/go-utils/log",
