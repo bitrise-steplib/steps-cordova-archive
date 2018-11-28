@@ -4,7 +4,7 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 app:
   envs:
   - STEP_VERSION: 1.2.1
-  - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
+  - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
 
 workflows:
   test:
@@ -13,6 +13,39 @@ workflows:
     - golint:
     - errcheck:
     - go-test:
+    after_run:
+    - test-with-npm
+    - test-with-yarn
+
+  test-with-npm:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
+    - SAMPLE_APP_BRANCH: master
+    - ADD_PLATFORMS: "true"
+    - USE_YARN: "false"
+    after_run:
+    - _common
+
+  test-with-npm-no-platform-add:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
+    - SAMPLE_APP_BRANCH: master
+    - ADD_PLATFORMS: "false"
+    - USE_YARN: "false"
+    after_run:
+    - _common
+
+  test-with-yarn:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/lpusok/sample-apps-cordova-with-karma-jasmine.git/
+    - SAMPLE_APP_BRANCH: master
+    - ADD_PLATFORMS: "true"
+    - USE_YARN: "true"
+    after_run:
+    - _common
+
+  _common:
+    steps:
     - script:
         inputs:
         - content: |-
@@ -28,12 +61,26 @@ workflows:
         - is_create_path: true
     - script:
         inputs:
-        - content: git clone "${SAMPLE_APP_URL}" .
+        - content: git clone --single-branch -b "${SAMPLE_APP_BRANCH}" "${SAMPLE_APP_URL}" .
+    - script:
+        run_if: '{{enveq "USE_YARN" "true"}}'
+        inputs:
+        - content: |-
+            #!/usr/bin/env bash
+            rm -rf ./platforms
+            rm package-lock.json; rm -rf ./node_modules
+    - yarn:
+        run_if: '{{enveq "USE_YARN" "true"}}'
+        inputs:
+        - command: install
     - path::./:
         title: Step Test
         inputs:
         - options: --buildFlag="-UseModernBuildSystem=0"
         - target: emulator
+        - cordova_version: latest
+        - readd_platform: ${ADD_PLATFORMS}
+        - add_platform: ${ADD_PLATFORMS}
     - script:
         title: Output test
         inputs:
@@ -55,6 +102,10 @@ workflows:
                 echo "Does not exist: apk file's path"
                 exit 1
             fi
+    - change-workdir:
+        title: Change back to original working directory
+        inputs:
+        - path: ${ORIG_BITRISE_SOURCE_DIR}
 
   # ----------------------------------------------------------------
   # --- Utility workflows
@@ -74,22 +125,6 @@ workflows:
             dep ensure -v -update
 
   # ----------------------------------------------------------------
-  # --- workflows for Releasing
-  create-release:
-    title: Create Release version
-    steps:
-    - script:
-        title: Create CHANGELOG and git release
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-
-            go get -u github.com/bitrise-tools/releaseman
-            export CI=true
-            releaseman create --version "$STEP_VERSION"
-
-  # ----------------------------------------------------------------
   # --- workflows to Share this step into a Step Library
   audit-this-step:
     steps:
@@ -99,43 +134,3 @@ workflows:
             #!/bin/bash
             set -ex
             stepman audit --step-yml ./step.yml
-
-  share-this-step:
-    envs:
-      # if you want to share this step into a StepLib
-      - MY_STEPLIB_REPO_FORK_GIT_URL: $MY_STEPLIB_REPO_FORK_GIT_URL
-      - STEP_ID_IN_STEPLIB: cordova-archive
-      - STEP_GIT_VERION_TAG_TO_SHARE: $STEP_VERSION
-      - STEP_GIT_CLONE_URL: https://github.com/bitrise-community/steps-cordova-archive.git
-    description: |-
-      If this is the first time you try to share a Step you should
-      first call: $ bitrise share
-
-      This will print you a guide, and information about how Step sharing
-      works. Please read it at least once!
-
-      As noted in the Step sharing guide you'll have to fork the
-      StepLib you want to share this step into. Once you're done with forking
-      the repository you should set your own fork's git clone URL
-      in the `.bitrise.secrets.yml` file, or here in the `envs` section,
-      as the value of the `MY_STEPLIB_REPO_FORK_GIT_URL` environment.
-
-      You're now ready to share this Step, just make sure that
-      the `STEP_ID_IN_STEPLIB` and `STEP_GIT_VERION_TAG_TO_SHARE`
-      environments are set to the desired values!
-
-      To share this Step into a StepLib you can just run: $ bitrise run share-this-step
-
-      Once it finishes the only thing left is to actually create a Pull Request,
-      the way described in the guide printed at the end of the process.
-    before_run:
-    - audit-this-step
-    steps:
-    - script:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            bitrise share start -c ${MY_STEPLIB_REPO_FORK_GIT_URL}
-            bitrise share create --stepid ${STEP_ID_IN_STEPLIB} --tag ${STEP_GIT_VERION_TAG_TO_SHARE} --git ${STEP_GIT_CLONE_URL}
-            bitrise share finish

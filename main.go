@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/bitrise-community/steps-cordova-archive/cordova"
+	"github.com/bitrise-community/steps-ionic-archive/jsdependency"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/log"
@@ -161,24 +162,6 @@ func moveAndExportOutputs(outputs []string, deployDir, envKey string, isOnlyCont
 	return outputToExport, nil
 }
 
-func npmUpdate(tool, version string) error {
-	args := []string{}
-	if version == "latest" {
-		args = append(args, "install", "-g", tool)
-	} else {
-		args = append(args, "install", "-g", tool+"@"+version)
-	}
-
-	cmd := command.New("npm", args...)
-
-	log.Donef("$ %s", cmd.PrintableCommandArgs())
-
-	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		return fmt.Errorf("command failed, output: %s, error: %s", out, err)
-	}
-	return nil
-}
-
 func toolVersion(tool string) (string, error) {
 	out, err := command.New(tool, "-v").RunAndReturnTrimmedCombinedOutput()
 	if err != nil {
@@ -225,13 +208,51 @@ func main() {
 		fail("Issue with input: %s", err)
 	}
 
+	// Change dir to working directory
+	workDir, err := pathutil.AbsPath(configs.WorkDir)
+	log.Debugf("New work dir: %s", workDir)
+	if err != nil {
+		fail("Failed to expand WorkDir (%s), error: %s", configs.WorkDir, err)
+	}
+
+	currentDir, err := pathutil.CurrentWorkingDirectoryAbsolutePath()
+	if err != nil {
+		fail("Failed to get current directory, error: %s", err)
+	}
+
+	if workDir != currentDir {
+		fmt.Println()
+		log.Infof("Switch working directory to: %s", workDir)
+
+		revokeFunc, err := pathutil.RevokableChangeDir(workDir)
+		if err != nil {
+			fail("Failed to change working directory, error: %s", err)
+		}
+		defer func() {
+			fmt.Println()
+			log.Infof("Reset working directory")
+			if err := revokeFunc(); err != nil {
+				fail("Failed to reset working directory, error: %s", err)
+			}
+		}()
+	}
+
 	// Update cordova version
 	if configs.CordovaVersion != "" {
 		fmt.Println()
 		log.Infof("Updating cordova version to: %s", configs.CordovaVersion)
+		packageName := "cordova"
+		packageName += "@" + configs.CordovaVersion
 
-		if err := npmUpdate("cordova", configs.CordovaVersion); err != nil {
-			fail(err.Error())
+		packageManager := jsdependency.DetectTool(workDir)
+		log.Printf("Js package manager used: %s", packageManager)
+
+		if err := jsdependency.Remove(packageManager, jsdependency.Local, "cordova"); err != nil && packageManager != jsdependency.Yarn {
+			fail("Failed to remove local cordova, err: %s", err)
+		}
+
+		if err := jsdependency.Add(packageManager, jsdependency.Global, packageName); err != nil {
+			fail("Failed to install cordova, err: %s", err)
 		}
 	}
 
@@ -270,34 +291,6 @@ func main() {
 	}
 
 	builder.SetBuildConfig(configs.BuildConfig)
-
-	// Change dir to working directory
-	workDir, err := pathutil.AbsPath(configs.WorkDir)
-	if err != nil {
-		fail("Failed to expand WorkDir (%s), error: %s", configs.WorkDir, err)
-	}
-
-	currentDir, err := pathutil.CurrentWorkingDirectoryAbsolutePath()
-	if err != nil {
-		fail("Failed to get current directory, error: %s", err)
-	}
-
-	if workDir != currentDir {
-		fmt.Println()
-		log.Infof("Switch working directory to: %s", workDir)
-
-		revokeFunc, err := pathutil.RevokableChangeDir(workDir)
-		if err != nil {
-			fail("Failed to change working directory, error: %s", err)
-		}
-		defer func() {
-			fmt.Println()
-			log.Infof("Reset working directory")
-			if err := revokeFunc(); err != nil {
-				fail("Failed to reset working directory, error: %s", err)
-			}
-		}()
-	}
 
 	// cordova prepare
 	fmt.Println()
