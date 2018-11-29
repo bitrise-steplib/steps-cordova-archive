@@ -63,6 +63,11 @@ workflows:
         inputs:
         - content: git clone --single-branch -b "${SAMPLE_APP_BRANCH}" "${SAMPLE_APP_URL}" .
     - script:
+        # Needed to test cordova prepare
+        run_if: '{{enveq "ADD_PLATFORMS" "false"}}'
+        inputs:
+        - content: rm -rf ./platforms
+    - script:
         run_if: '{{enveq "USE_YARN" "true"}}'
         inputs:
         - content: |-

@@ -79,6 +79,12 @@ func (builder *Model) PlatformCommand(cmd string) *command.Model {
 	return command.New(cmdSlice[0], cmdSlice[1:]...)
 }
 
+// PrepareCommand ...
+func (builder *Model) PrepareCommand() *command.Model {
+	cmdSlice := builder.commandSlice("prepare")
+	return command.New(cmdSlice[0], cmdSlice[1:]...)
+}
+
 // CompileCommand ...
 func (builder *Model) CompileCommand() *command.Model {
 	cmdSlice := builder.commandSlice("compile")

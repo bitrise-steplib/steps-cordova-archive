@@ -319,7 +319,7 @@ func main() {
 			fail("cordova add platform failed, error: %s", err)
 		}
 	} else {
-		platformPrepareCmd := builder.PlatformCommand("prepare")
+		platformPrepareCmd := builder.PrepareCommand()
 		platformPrepareCmd.SetStdout(os.Stdout)
 		platformPrepareCmd.SetStderr(os.Stderr)
 
