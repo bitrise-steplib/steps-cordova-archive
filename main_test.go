@@ -74,7 +74,7 @@ func Test_checkBuildProducts(t *testing.T) {
 			"ios device target, app generated FAIL",
 			args{
 				[]string{},
-				[]string{"/app_path"},
+				[]string{"/app_path.app"},
 				[]string{},
 				[]string{"ios"},
 				"device",

@@ -145,7 +145,7 @@ func checkBuildProducts(apks []string, apps []string, ipas []string, platforms [
 	// if ios in platforms
 	if sliceutil.IsStringInSlice("ios", platforms) {
 		if len(apps) == 0 && target == "emulator" {
-			return errors.New("No apk generated")
+			return errors.New("No app generated")
 		}
 		if len(ipas) == 0 && target == "device" {
 			return errors.New("no ipa generated")
