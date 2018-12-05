@@ -67,7 +67,7 @@ workflows:
         inputs:
         - content: |-
             #!/usr/bin/env bash
-            rm -rf ./platforms
+            # Yarn warns if package-lock.json exists, node_modules could be created by npm
             rm package-lock.json; rm -rf ./node_modules
     - yarn:
         run_if: '{{enveq "USE_YARN" "true"}}'
