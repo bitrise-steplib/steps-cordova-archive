@@ -3,11 +3,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e876f64ed2a9b807f0cad5cb5227a8a11afd3da35e109d9ffb262ed6a62c5a8f"
+  digest = "1:d1fd0f4dbfa7ece706dcfd06f2279648d8d39505f663605b6f76ada1fabb8cd9"
   name = "github.com/bitrise-community/steps-ionic-archive"
   packages = ["jsdependency"]
   pruneopts = ""
-  revision = "2ba6ba5479a46c69e75b10194187e2ae84ee189f"
+  revision = "7869644a568b04e31b29def8df7233b3a9466ea8"
 
 [[projects]]
   branch = "master"
@@ -53,6 +53,7 @@
     "github.com/bitrise-community/steps-ionic-archive/jsdependency",
     "github.com/bitrise-io/go-utils/colorstring",
     "github.com/bitrise-io/go-utils/command",
+    "github.com/bitrise-io/go-utils/errorutil",
     "github.com/bitrise-io/go-utils/log",
     "github.com/bitrise-io/go-utils/pathutil",
     "github.com/bitrise-io/go-utils/sliceutil",

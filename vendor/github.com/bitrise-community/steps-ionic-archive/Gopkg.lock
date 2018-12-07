@@ -10,7 +10,9 @@
     "command",
     "errorutil",
     "log",
+    "parseutil",
     "pathutil",
+    "pointers",
     "sliceutil",
     "ziputil",
   ]
@@ -22,7 +24,7 @@
   digest = "1:3511df2e558e2755b01ce5670ddc536fa031e63e5b4974bb0f35aac53704f06e"
   name = "github.com/bitrise-tools/go-steputils"
   packages = [
-    "input",
+    "stepconf",
     "tools",
   ]
   pruneopts = ""
@@ -63,7 +65,7 @@
     "github.com/bitrise-io/go-utils/pathutil",
     "github.com/bitrise-io/go-utils/sliceutil",
     "github.com/bitrise-io/go-utils/ziputil",
-    "github.com/bitrise-tools/go-steputils/input",
+    "github.com/bitrise-tools/go-steputils/stepconf",
     "github.com/bitrise-tools/go-steputils/tools",
     "github.com/hashicorp/go-version",
     "github.com/kballard/go-shellquote",

@@ -9,9 +9,11 @@ import (
 	"time"
 
 	"github.com/bitrise-community/steps-cordova-archive/cordova"
+
 	"github.com/bitrise-community/steps-ionic-archive/jsdependency"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/sliceutil"
@@ -38,12 +40,32 @@ type config struct {
 	Configuration  string `env:"configuration,required"`
 	Target         string `env:"target,required"`
 	BuildConfig    string `env:"build_config"`
-	AddPlatform    string `env:"add_platform,opt[true,false]"`
-	ReAddPlatform  string `env:"readd_platform,opt[true,false]"`
+	RunPrepare     bool   `env:"run_cordova_prepare,opt[true,false]"`
 	CordovaVersion string `env:"cordova_version"`
 	WorkDir        string `env:"workdir,dir"`
 	Options        string `env:"options"`
 	DeployDir      string `env:"BITRISE_DEPLOY_DIR"`
+}
+
+func installDependency(packageManager jsdependency.Tool, name string, version string) error {
+	cmdSlice, err := jsdependency.InstallGlobalDependencyCommand(packageManager, name, version)
+	if err != nil {
+		return fmt.Errorf("Failed to update %s version, error: %s", name, err)
+	}
+	for i, cmd := range cmdSlice {
+		fmt.Println()
+		log.Donef("$ %s", cmd.PrintableCommandArgs())
+		fmt.Println()
+
+		// Yarn returns an error if the package is not added before removal, ignoring
+		if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil && !(packageManager == jsdependency.Yarn && i == 0) {
+			if errorutil.IsExitStatusError(err) {
+				return fmt.Errorf("Failed to update %s version: %s failed, output: %s", name, cmd.PrintableCommandArgs(), out)
+			}
+			return fmt.Errorf("Failed to update %s version: %s failed, error: %s", name, cmd.PrintableCommandArgs(), err)
+		}
+	}
+	return nil
 }
 
 func moveAndExportOutputs(outputs []string, deployDir, envKey string, isOnlyContent bool) (string, error) {
@@ -104,20 +126,6 @@ func moveAndExportOutputs(outputs []string, deployDir, envKey string, isOnlyCont
 	}
 
 	return outputToExport, nil
-}
-
-func toolVersion(tool string) (string, error) {
-	out, err := command.New(tool, "-v").RunAndReturnTrimmedCombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("$ %s -v failed, output: %s, error: %s", tool, out, err)
-	}
-
-	lines := strings.Split(out, "\n")
-	if len(lines) > 0 {
-		return lines[len(lines)-1], nil
-	}
-
-	return out, nil
 }
 
 func findArtifact(rootDir, ext string, buildStart time.Time) ([]string, error) {
@@ -198,31 +206,30 @@ func main() {
 
 	// Update cordova version
 	if configs.CordovaVersion != "" {
-		fmt.Println()
+		log.Printf("\n")
 		log.Infof("Updating cordova version to: %s", configs.CordovaVersion)
 		packageName := "cordova"
 		packageName += "@" + configs.CordovaVersion
 
-		packageManager := jsdependency.DetectTool(workDir)
+		packageManager, err := jsdependency.DetectTool(workDir)
+		if err != nil {
+			log.Warnf("%s", err)
+		}
 		log.Printf("Js package manager used: %s", packageManager)
 
-		if err := jsdependency.Remove(packageManager, jsdependency.Local, "cordova"); err != nil && packageManager != jsdependency.Yarn {
-			fail("Failed to remove local cordova, err: %s", err)
-		}
-
-		if err := jsdependency.Add(packageManager, jsdependency.Global, packageName); err != nil {
-			fail("Failed to install cordova, err: %s", err)
+		if err := installDependency(packageManager, "cordova", configs.CordovaVersion); err != nil {
+			fail("Updating cordova failed, error: %s", err)
 		}
 	}
 
 	// Print cordova and ionic version
-	cordovaVersion, err := toolVersion("cordova")
+	cordovaVersion, err := cordova.CurrentVersion()
 	if err != nil {
 		fail(err.Error())
 	}
 
 	fmt.Println()
-	log.Printf("using cordova version:\n%s", colorstring.Green(cordovaVersion))
+	log.Printf("Using cordova version:\n%s", colorstring.Green(cordovaVersion))
 
 	// Fulfill cordova builder
 	builder := cordova.New()
@@ -252,40 +259,15 @@ func main() {
 	builder.SetBuildConfig(configs.BuildConfig)
 
 	// cordova prepare
-	fmt.Println()
-	log.Infof("Preparing project")
-
-	if configs.AddPlatform == "true" {
-		if configs.ReAddPlatform == "true" {
-			platformRemoveCmd := builder.PlatformCommand("rm")
-			platformRemoveCmd.SetStdout(os.Stdout)
-			platformRemoveCmd.SetStderr(os.Stderr)
-
-			log.Donef("$ %s", platformRemoveCmd.PrintableCommandArgs())
-
-			if err := platformRemoveCmd.Run(); err != nil {
-				fail("cordova remove platform failed, error: %s", err)
-			}
-		}
-
-		platformAddCmd := builder.PlatformCommand("add")
-		platformAddCmd.SetStdout(os.Stdout)
-		platformAddCmd.SetStderr(os.Stderr)
-
-		log.Donef("$ %s", platformAddCmd.PrintableCommandArgs())
-
-		if err := platformAddCmd.Run(); err != nil {
-			fail("cordova add platform failed, error: %s", err)
-		}
-	} else {
-		platformPrepareCmd := builder.PlatformCommand("prepare")
-		platformPrepareCmd.SetStdout(os.Stdout)
-		platformPrepareCmd.SetStderr(os.Stderr)
-
+	if configs.RunPrepare {
+		fmt.Println()
+		log.Infof("Preparing project")
+		platformPrepareCmd := builder.PrepareCommand()
+		platformPrepareCmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
 		log.Donef("$ %s", platformPrepareCmd.PrintableCommandArgs())
 
 		if err := platformPrepareCmd.Run(); err != nil {
-			fail("cordova prepare platform failed, error: %s", err)
+			fail("cordova prepare failed, error: %s", err)
 		}
 	}
 

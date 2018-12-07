@@ -1,9 +1,8 @@
-format_version: 4
+format_version: 6
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:
-  - STEP_VERSION: 1.2.4
   - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
 
 workflows:
@@ -20,13 +19,23 @@ workflows:
         - node_version: 10.13.0
     after_run:
     - test-with-npm
+    - test-with-npm-no-platform-remove
     - test-with-yarn
 
   test-with-npm:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-samples/ionic-conference-app.git
     - BRANCH: update
-    - READD_PLATFORM: true
+    - REMOVE_PLATFORM: true
+    - USE_NPM: true
+    after_run:
+    - _common
+
+  test-with-npm-no-platform-remove:
+    envs:
+    - SAMPLE_APP_URL: https://github.com/bitrise-samples/ionic-conference-app.git
+    - BRANCH: update
+    - REMOVE_PLATFORM: false
     - USE_NPM: true
     after_run:
     - _common
@@ -35,7 +44,7 @@ workflows:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-samples/ionic-conference-app.git
     - BRANCH: yarn-test-preadded-platforms
-    - READD_PLATFORM: false
+    - REMOVE_PLATFORM: false
     - USE_NPM: false
     after_run:
     - _common
@@ -71,6 +80,11 @@ workflows:
             git fetch || exit 1
             [[ -n "${COMMIT}" ]] && git checkout "${COMMIT}" || git checkout "${BRANCH}"
     - script:
+        # Needed to test ionic cordova prepare
+        run_if: '{{enveq "REMOVE_PLATFORM" "true"}}'
+        inputs:
+        - content: rm -rf ./platforms
+    - script:
         inputs:
         - content: |-
             #!/usr/bin/env bash
@@ -92,10 +106,10 @@ workflows:
         - target: emulator
         - platform: ios,android
         - ionic_version: latest
+        - cordova_version: latest
         - ionic_username: $IONIC_USERNAME
         - ionic_password: $IONIC_PASSWORD
         - options: --verbose -- --buildFlag="-UseModernBuildSystem=0"
-        - readd_platform: ${READD_PLATFORM}
     - change-workdir:
         title: Switch back to original working directory
         inputs:

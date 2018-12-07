@@ -70,26 +70,14 @@ inputs:
       title: "Build configuration path to describe code signing properties"
       description: |-
         Path to the build configuration file (build.json), which describes code signing properties.
-  - add_platform: "true"
+  - run_cordova_prepare: "true"
     opts:
-      title: "Should add platforms as part of the prepare step?"
+      title: "Should `cordova prepare` be executed before `cordova compile`?"
       description: |-
-        Specify whether to add platforms during prepare. If false, prepare command will be used instead.
+        Should be left at the default (true) value, except if the cordova-prepare step is used.
 
-        `cordova platform add <platform>` or `cordova prepare <platform>`
-      value_options:
-      - "true"
-      - "false"
-      is_required: true
-  - readd_platform: "true"
-    opts:
-      title: "Should remove platforms as part of the prepare step?"
-      description: |-
-        Specify whether to remove platforms and then re-add (overwrites some config.xml values).
-
-        Only applies if _"Should add platforms as prepare step?"_ is `true`.
-
-        `cordova platform rm <platform>`
+        - true: `cordova prepare <platform>` followed by `cordova compile <platform>`
+        - false: `cordova compile <platform>`
       value_options:
       - "true"
       - "false"

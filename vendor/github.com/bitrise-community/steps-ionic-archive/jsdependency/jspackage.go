@@ -1,12 +1,11 @@
 package jsdependency
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 
 	"github.com/bitrise-io/go-utils/command"
-	"github.com/bitrise-io/go-utils/errorutil"
-	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
 )
 
@@ -36,30 +35,52 @@ const (
 )
 
 // DetectTool returns the Js package manager used, e.g. npm or yarn
-func DetectTool(absPackageJSONDir string) Tool {
+func DetectTool(absPackageJSONDir string) (Tool, error) {
 	if exist, err := pathutil.IsPathExists(filepath.Join(absPackageJSONDir, "yarn.lock")); err != nil {
-		log.Warnf("Failed to check if yarn.lock file exists in the workdir: %s", err)
-		return Npm
+		return Npm, fmt.Errorf("Failed to check if yarn.lock file exists in the workdir: %s", err)
 	} else if exist {
-		return Yarn
+		return Yarn, nil
 	}
-	return Npm
+	return Npm, nil
 }
 
-// Remove removes installed js dependencies using the selected package manager
-func Remove(packageManager Tool, commandScope CommandScope, pkg ...string) error {
-	return runManagerCmd(packageManager,
+// RemoveCommand returns command model to remove js dependencies
+func RemoveCommand(packageManager Tool, commandScope CommandScope, pkg ...string) (*command.Model, error) {
+	return createManagerCmd(packageManager,
 		toolCommandBuilder(packageManager, removeCommand),
 		commandScope,
 		pkg...)
 }
 
-// Add installs js dependencies using the selected package manager
-func Add(packageManager Tool, commandScope CommandScope, pkg ...string) error {
-	return runManagerCmd(packageManager,
+// AddCommand returns command model to install js dependencies
+func AddCommand(packageManager Tool, commandScope CommandScope, pkg ...string) (*command.Model, error) {
+	return createManagerCmd(packageManager,
 		toolCommandBuilder(packageManager, addCommand),
 		commandScope,
 		pkg...)
+}
+
+// InstallGlobalDependencyCommand returns command model to install a global js dependency
+func InstallGlobalDependencyCommand(packageManager Tool, dependency string, version string) ([]*command.Model, error) {
+	if dependency == "" {
+		return nil, errors.New("Dependency name unspecified")
+	}
+	var cmdSlice []*command.Model
+	{
+		cmd, err := RemoveCommand(packageManager, Local, dependency)
+		if err != nil {
+			return nil, err
+		}
+		cmdSlice = append(cmdSlice, cmd)
+	}
+	{
+		cmd, err := AddCommand(packageManager, Global, dependency+"@"+version)
+		if err != nil {
+			return nil, err
+		}
+		cmdSlice = append(cmdSlice, cmd)
+	}
+	return cmdSlice, nil
 }
 
 func toolCommandBuilder(packageManger Tool, command managerCommand) string {
@@ -73,7 +94,7 @@ func toolCommandBuilder(packageManger Tool, command managerCommand) string {
 	return "add"
 }
 
-func runManagerCmd(packageManager Tool, packageManagerCmd string, commandScope CommandScope, pkg ...string) error {
+func createManagerCmd(packageManager Tool, packageManagerCmd string, commandScope CommandScope, pkg ...string) (*command.Model, error) {
 	var commandArgs []string
 	switch packageManager {
 	case Npm:
@@ -92,18 +113,7 @@ func runManagerCmd(packageManager Tool, packageManagerCmd string, commandScope C
 	}
 	cmd, err := command.NewFromSlice(commandArgs)
 	if err != nil {
-		return fmt.Errorf("Command creation failed, error: %s", err)
+		return nil, fmt.Errorf("Command creation failed, error: %s", err)
 	}
-
-	fmt.Println()
-	log.Donef("$ %s", cmd.PrintableCommandArgs())
-	fmt.Println()
-
-	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		if errorutil.IsExitStatusError(err) {
-			return fmt.Errorf("%s failed, output: %s", cmd.PrintableCommandArgs(), out)
-		}
-		return fmt.Errorf("%s failed, error: %s", cmd.PrintableCommandArgs(), err)
-	}
-	return nil
+	return cmd, nil
 }
