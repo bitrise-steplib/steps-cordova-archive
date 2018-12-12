@@ -1,16 +1,19 @@
-
 [[constraint]]
-  branch = "master"
   name = "github.com/bitrise-io/go-utils"
+  branch = "master"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/bitrise-tools/go-steputils"
-
-[[constraint]]
   branch = "master"
-  name = "github.com/kballard/go-shellquote"
 
 [[constraint]]
-  name = "github.com/bitrise-community/steps-ionic-archive"
+  name = "github.com/hashicorp/go-version"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/kballard/go-shellquote"
+  branch = "master"
+
+[[constraint]]
+  name = "github.com/pkg/errors"
   branch = "master"

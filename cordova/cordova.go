@@ -1,6 +1,8 @@
 package cordova
 
-import "github.com/bitrise-io/go-utils/command"
+import (
+	"github.com/bitrise-io/go-utils/command"
+)
 
 // Model ...
 type Model struct {
@@ -73,9 +75,9 @@ func (builder *Model) commandSlice(cmd ...string) []string {
 	return cmdSlice
 }
 
-// PlatformCommand ...
-func (builder *Model) PlatformCommand(cmd string) *command.Model {
-	cmdSlice := builder.commandSlice("platform", cmd)
+// PrepareCommand ...
+func (builder *Model) PrepareCommand() *command.Model {
+	cmdSlice := builder.commandSlice("prepare")
 	return command.New(cmdSlice[0], cmdSlice[1:]...)
 }
 

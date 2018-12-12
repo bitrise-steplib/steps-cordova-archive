@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -8,12 +9,16 @@ import (
 	"time"
 
 	"github.com/bitrise-community/steps-cordova-archive/cordova"
+
+	"github.com/bitrise-community/steps-ionic-archive/jsdependency"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/command"
+	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
+	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/bitrise-io/go-utils/ziputil"
-	"github.com/bitrise-tools/go-steputils/input"
+	"github.com/bitrise-tools/go-steputils/stepconf"
 	"github.com/bitrise-tools/go-steputils/tools"
 	"github.com/kballard/go-shellquote"
 )
@@ -30,71 +35,40 @@ const (
 	apkPathEnvKey = "BITRISE_APK_PATH"
 )
 
-// ConfigsModel ...
-type ConfigsModel struct {
-	Platform       string
-	Configuration  string
-	Target         string
-	BuildConfig    string
-	ReAddPlatform  string
-	CordovaVersion string
-	WorkDir        string
-	Options        string
-	DeployDir      string
+type config struct {
+	Platform       string `env:"platform,opt['ios,android',ios,android]"`
+	Configuration  string `env:"configuration,required"`
+	Target         string `env:"target,required"`
+	BuildConfig    string `env:"build_config"`
+	RunPrepare     bool   `env:"run_cordova_prepare,opt[true,false]"`
+	CordovaVersion string `env:"cordova_version"`
+	WorkDir        string `env:"workdir,dir"`
+	Options        string `env:"options"`
+	DeployDir      string `env:"BITRISE_DEPLOY_DIR"`
 }
 
-func createConfigsModelFromEnvs() ConfigsModel {
-	return ConfigsModel{
-		Platform:       os.Getenv("platform"),
-		Configuration:  os.Getenv("configuration"),
-		Target:         os.Getenv("target"),
-		BuildConfig:    os.Getenv("build_config"),
-		ReAddPlatform:  os.Getenv("readd_platform"),
-		CordovaVersion: os.Getenv("cordova_version"),
-		WorkDir:        os.Getenv("workdir"),
-		Options:        os.Getenv("options"),
-		DeployDir:      os.Getenv("BITRISE_DEPLOY_DIR"),
+func installDependency(packageManager jsdependency.Tool, name string, version string) error {
+	cmdSlice, err := jsdependency.InstallGlobalDependencyCommand(packageManager, name, version)
+	if err != nil {
+		return fmt.Errorf("Failed to update %s version, error: %s", name, err)
 	}
-}
+	for i, cmd := range cmdSlice {
+		fmt.Println()
+		log.Donef("$ %s", cmd.PrintableCommandArgs())
+		fmt.Println()
 
-func (configs ConfigsModel) print() {
-	log.Infof("Configs:")
-	log.Printf("- Platform: %s", configs.Platform)
-	log.Printf("- Configuration: %s", configs.Configuration)
-	log.Printf("- Target: %s", configs.Target)
-	log.Printf("- BuildConfig: %s", configs.BuildConfig)
-	log.Printf("- ReAddPlatform: %s", configs.ReAddPlatform)
-	log.Printf("- CordovaVersion: %s", configs.CordovaVersion)
-	log.Printf("- WorkDir: %s", configs.WorkDir)
-	log.Printf("- Options: %s", configs.Options)
-	log.Printf("- DeployDir: %s", configs.DeployDir)
-}
-
-func (configs ConfigsModel) validate() error {
-	if err := input.ValidateIfDirExists(configs.WorkDir); err != nil {
-		return fmt.Errorf("WorkDir: %s", err)
+		// Yarn returns an error if the package is not added before removal, ignoring
+		if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil && !(packageManager == jsdependency.Yarn && i == 0) {
+			if errorutil.IsExitStatusError(err) {
+				return fmt.Errorf("Failed to update %s version: %s failed, output: %s", name, cmd.PrintableCommandArgs(), out)
+			}
+			return fmt.Errorf("Failed to update %s version: %s failed, error: %s", name, cmd.PrintableCommandArgs(), err)
+		}
 	}
-
-	if err := input.ValidateWithOptions(configs.Platform, "ios,android", "ios", "android"); err != nil {
-		return fmt.Errorf("Platform: %s", err)
-	}
-
-	if err := input.ValidateWithOptions(configs.ReAddPlatform, "true", "false"); err != nil {
-		return fmt.Errorf("ReAddPlatform: %s", err)
-	}
-
-	if err := input.ValidateIfNotEmpty(configs.Configuration); err != nil {
-		return fmt.Errorf("Configuration: %s", err)
-	}
-
-	if err := input.ValidateIfNotEmpty(configs.Target); err != nil {
-		return fmt.Errorf("Target: %s", err)
-	}
-
 	return nil
 }
 
-func moveAndExportOutputs(outputs []string, deployDir, envKey string) (string, error) {
+func moveAndExportOutputs(outputs []string, deployDir, envKey string, isOnlyContent bool) (string, error) {
 	outputToExport := ""
 	for _, output := range outputs {
 		info, err := os.Lstat(output)
@@ -107,8 +81,6 @@ func moveAndExportOutputs(outputs []string, deployDir, envKey string) (string, e
 			if err != nil {
 				return "", err
 			}
-
-			log.Warnf("Output: %s is a symlink to: %s", output, resolvedPth)
 
 			if exist, err := pathutil.IsPathExists(resolvedPth); err != nil {
 				return "", err
@@ -133,7 +105,7 @@ func moveAndExportOutputs(outputs []string, deployDir, envKey string) (string, e
 		destinationPth := filepath.Join(deployDir, fileName)
 
 		if info.IsDir() {
-			if err := command.CopyDir(output, destinationPth, false); err != nil {
+			if err := command.CopyDir(output, destinationPth, isOnlyContent); err != nil {
 				return "", err
 			}
 		} else {
@@ -156,38 +128,6 @@ func moveAndExportOutputs(outputs []string, deployDir, envKey string) (string, e
 	return outputToExport, nil
 }
 
-func npmUpdate(tool, version string) error {
-	args := []string{}
-	if version == "latest" {
-		args = append(args, "install", "-g", tool)
-	} else {
-		args = append(args, "install", "-g", tool+"@"+version)
-	}
-
-	cmd := command.New("npm", args...)
-
-	log.Donef("$ %s", cmd.PrintableCommandArgs())
-
-	if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil {
-		return fmt.Errorf("command failed, output: %s, error: %s", out, err)
-	}
-	return nil
-}
-
-func toolVersion(tool string) (string, error) {
-	out, err := command.New(tool, "-v").RunAndReturnTrimmedCombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("$ %s -v failed, output: %s, error: %s", tool, out, err)
-	}
-
-	lines := strings.Split(out, "\n")
-	if len(lines) > 0 {
-		return lines[len(lines)-1], nil
-	}
-
-	return out, nil
-}
-
 func findArtifact(rootDir, ext string, buildStart time.Time) ([]string, error) {
 	var matches []string
 	if walkErr := filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
@@ -205,39 +145,91 @@ func findArtifact(rootDir, ext string, buildStart time.Time) ([]string, error) {
 	return matches, nil
 }
 
+func checkBuildProducts(apks []string, apps []string, ipas []string, platforms []string, target string) error {
+	// if android in platforms
+	if len(apks) == 0 && sliceutil.IsStringInSlice("android", platforms) {
+		return errors.New("No apk generated")
+	}
+	// if ios in platforms
+	if sliceutil.IsStringInSlice("ios", platforms) {
+		if len(apps) == 0 && target == "emulator" {
+			return errors.New("No app generated")
+		}
+		if len(ipas) == 0 && target == "device" {
+			return errors.New("no ipa generated")
+		}
+	}
+	return nil
+}
+
 func fail(format string, v ...interface{}) {
 	log.Errorf(format, v...)
 	os.Exit(1)
 }
 
 func main() {
-	configs := createConfigsModelFromEnvs()
-
+	var configs config
+	if err := stepconf.Parse(&configs); err != nil {
+		fail("Could not create config: %s", err)
+	}
 	fmt.Println()
-	configs.print()
+	stepconf.Print(configs)
 
-	if err := configs.validate(); err != nil {
-		fail("Issue with input: %s", err)
+	// Change dir to working directory
+	workDir, err := pathutil.AbsPath(configs.WorkDir)
+	log.Debugf("New work dir: %s", workDir)
+	if err != nil {
+		fail("Failed to expand WorkDir (%s), error: %s", configs.WorkDir, err)
+	}
+
+	currentDir, err := pathutil.CurrentWorkingDirectoryAbsolutePath()
+	if err != nil {
+		fail("Failed to get current directory, error: %s", err)
+	}
+
+	if workDir != currentDir {
+		fmt.Println()
+		log.Infof("Switch working directory to: %s", workDir)
+
+		revokeFunc, err := pathutil.RevokableChangeDir(workDir)
+		if err != nil {
+			fail("Failed to change working directory, error: %s", err)
+		}
+		defer func() {
+			fmt.Println()
+			log.Infof("Reset working directory")
+			if err := revokeFunc(); err != nil {
+				fail("Failed to reset working directory, error: %s", err)
+			}
+		}()
 	}
 
 	// Update cordova version
 	if configs.CordovaVersion != "" {
-		fmt.Println()
+		log.Printf("\n")
 		log.Infof("Updating cordova version to: %s", configs.CordovaVersion)
+		packageName := "cordova"
+		packageName += "@" + configs.CordovaVersion
 
-		if err := npmUpdate("cordova", configs.CordovaVersion); err != nil {
-			fail(err.Error())
+		packageManager, err := jsdependency.DetectTool(workDir)
+		if err != nil {
+			log.Warnf("%s", err)
+		}
+		log.Printf("Js package manager used: %s", packageManager)
+
+		if err := installDependency(packageManager, "cordova", configs.CordovaVersion); err != nil {
+			fail("Updating cordova failed, error: %s", err)
 		}
 	}
 
 	// Print cordova and ionic version
-	cordovaVersion, err := toolVersion("cordova")
+	cordovaVersion, err := cordova.CurrentVersion()
 	if err != nil {
 		fail(err.Error())
 	}
 
 	fmt.Println()
-	log.Printf("using cordova version:\n%s", colorstring.Green(cordovaVersion))
+	log.Printf("Using cordova version:\n%s", colorstring.Green(cordovaVersion))
 
 	// Fulfill cordova builder
 	builder := cordova.New()
@@ -266,58 +258,17 @@ func main() {
 
 	builder.SetBuildConfig(configs.BuildConfig)
 
-	// Change dir to working directory
-	workDir, err := pathutil.AbsPath(configs.WorkDir)
-	if err != nil {
-		fail("Failed to expand WorkDir (%s), error: %s", configs.WorkDir, err)
-	}
-
-	currentDir, err := pathutil.CurrentWorkingDirectoryAbsolutePath()
-	if err != nil {
-		fail("Failed to get current directory, error: %s", err)
-	}
-
-	if workDir != currentDir {
-		fmt.Println()
-		log.Infof("Switch working directory to: %s", workDir)
-
-		revokeFunc, err := pathutil.RevokableChangeDir(workDir)
-		if err != nil {
-			fail("Failed to change working directory, error: %s", err)
-		}
-		defer func() {
-			fmt.Println()
-			log.Infof("Reset working directory")
-			if err := revokeFunc(); err != nil {
-				fail("Failed to reset working directory, error: %s", err)
-			}
-		}()
-	}
-
 	// cordova prepare
-	fmt.Println()
-	log.Infof("Preparing project")
+	if configs.RunPrepare {
+		fmt.Println()
+		log.Infof("Preparing project")
+		platformPrepareCmd := builder.PrepareCommand()
+		platformPrepareCmd.SetStdout(os.Stdout).SetStderr(os.Stderr)
+		log.Donef("$ %s", platformPrepareCmd.PrintableCommandArgs())
 
-	if configs.ReAddPlatform == "true" {
-		platformRemoveCmd := builder.PlatformCommand("rm")
-		platformRemoveCmd.SetStdout(os.Stdout)
-		platformRemoveCmd.SetStderr(os.Stderr)
-
-		log.Donef("$ %s", platformRemoveCmd.PrintableCommandArgs())
-
-		if err := platformRemoveCmd.Run(); err != nil {
-			fail("cordova failed, error: %s", err)
+		if err := platformPrepareCmd.Run(); err != nil {
+			fail("cordova prepare failed, error: %s", err)
 		}
-	}
-
-	platformAddCmd := builder.PlatformCommand("add")
-	platformAddCmd.SetStdout(os.Stdout)
-	platformAddCmd.SetStderr(os.Stderr)
-
-	log.Donef("$ %s", platformAddCmd.PrintableCommandArgs())
-
-	if err := platformAddCmd.Run(); err != nil {
-		fail("cordova failed, error: %s", err)
 	}
 
 	// cordova build
@@ -333,10 +284,11 @@ func main() {
 	compileStart := time.Now()
 
 	if err := buildCmd.Run(); err != nil {
-		fail("cordova failed, error: %s", err)
+		fail("cordova build failed, error: %s", err)
 	}
 
 	// collect outputs
+	var ipas, apps []string
 	iosOutputDirExist := false
 	iosOutputDir := filepath.Join(workDir, "platforms", "ios", "build", configs.Target)
 	if exist, err := pathutil.IsDirExists(iosOutputDir); err != nil {
@@ -347,13 +299,13 @@ func main() {
 		fmt.Println()
 		log.Infof("Collecting ios outputs")
 
-		ipas, err := findArtifact(iosOutputDir, "ipa", compileStart)
+		ipas, err = findArtifact(iosOutputDir, "ipa", compileStart)
 		if err != nil {
 			fail("Failed to find ipas in dir (%s), error: %s", iosOutputDir, err)
 		}
 
 		if len(ipas) > 0 {
-			if exportedPth, err := moveAndExportOutputs(ipas, configs.DeployDir, ipaPathEnvKey); err != nil {
+			if exportedPth, err := moveAndExportOutputs(ipas, configs.DeployDir, ipaPathEnvKey, false); err != nil {
 				fail("Failed to export ipas, error: %s", err)
 			} else {
 				log.Donef("The ipa path is now available in the Environment Variable: %s (value: %s)", ipaPathEnvKey, exportedPth)
@@ -366,13 +318,13 @@ func main() {
 		}
 
 		if len(dsyms) > 0 {
-			if exportedPth, err := moveAndExportOutputs(dsyms, configs.DeployDir, dsymDirPathEnvKey); err != nil {
+			if exportedPth, err := moveAndExportOutputs(dsyms, configs.DeployDir, dsymDirPathEnvKey, true); err != nil {
 				fail("Failed to export dsyms, error: %s", err)
 			} else {
 				log.Donef("The dsym dir path is now available in the Environment Variable: %s (value: %s)", dsymDirPathEnvKey, exportedPth)
 
 				zippedExportedPth := exportedPth + ".zip"
-				if err := ziputil.ZipFile(exportedPth, zippedExportedPth); err != nil {
+				if err := ziputil.ZipDir(exportedPth, zippedExportedPth, false); err != nil {
 					fail("Failed to zip dsym dir (%s), error: %s", exportedPth, err)
 				}
 
@@ -384,13 +336,13 @@ func main() {
 			}
 		}
 
-		apps, err := findArtifact(iosOutputDir, "app", compileStart)
+		apps, err = findArtifact(iosOutputDir, "app", compileStart)
 		if err != nil {
 			fail("Failed to find apps in dir (%s), error: %s", iosOutputDir, err)
 		}
 
 		if len(apps) > 0 {
-			if exportedPth, err := moveAndExportOutputs(apps, configs.DeployDir, appDirPathEnvKey); err != nil {
+			if exportedPth, err := moveAndExportOutputs(apps, configs.DeployDir, appDirPathEnvKey, true); err != nil {
 				log.Warnf("Failed to export apps, error: %s", err)
 			} else {
 				log.Donef("The app dir path is now available in the Environment Variable: %s (value: %s)", appDirPathEnvKey, exportedPth)
@@ -409,6 +361,7 @@ func main() {
 		}
 	}
 
+	var apks []string
 	androidOutputDirExist := false
 	// examples for apk paths:
 	// PROJECT_ROOT/platforms/android/app/build/outputs/apk/debug/app-debug.apk
@@ -422,13 +375,13 @@ func main() {
 		fmt.Println()
 		log.Infof("Collecting android outputs")
 
-		apks, err := findArtifact(androidOutputDir, "apk", compileStart)
+		apks, err = findArtifact(androidOutputDir, "apk", compileStart)
 		if err != nil {
 			fail("Failed to find apks in dir (%s), error: %s", androidOutputDir, err)
 		}
 
 		if len(apks) > 0 {
-			if exportedPth, err := moveAndExportOutputs(apks, configs.DeployDir, apkPathEnvKey); err != nil {
+			if exportedPth, err := moveAndExportOutputs(apks, configs.DeployDir, apkPathEnvKey, false); err != nil {
 				fail("Failed to export apks, error: %s", err)
 			} else {
 				log.Donef("The apk path is now available in the Environment Variable: %s (value: %s)", apkPathEnvKey, exportedPth)
@@ -439,5 +392,9 @@ func main() {
 	if !iosOutputDirExist && !androidOutputDirExist {
 		log.Warnf("No ios nor android platform's output dir exist")
 		fail("No output generated")
+	}
+
+	if err := checkBuildProducts(apks, apps, ipas, platforms, configs.Target); err != nil {
+		fail("Build outputs missing: %s", err)
 	}
 }

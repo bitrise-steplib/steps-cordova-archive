@@ -8,6 +8,10 @@ description: |-
   - `cordova "platform" "rm" "<platform>"`
   - `cordova "platform" "add" "<platform>"`
 
+  Or: 
+
+  - `cordova "prepare" "<platform>"`
+
   Then it archives the project by calling:
 
   - `cordova "build" "--debug|--release" "--device|--emulator" "<platform>" "--buildConfig=$BITRISE_CORDOVA_BUILD_CONFIGURATION"`
@@ -66,13 +70,14 @@ inputs:
       title: "Build configuration path to describe code signing properties"
       description: |-
         Path to the build configuration file (build.json), which describes code signing properties.
-  - readd_platform: "true"
+  - run_cordova_prepare: "true"
     opts:
-      title: "Should remove platforms as preparing the project?"
+      title: "Should `cordova prepare` be executed before `cordova compile`?"
       description: |-
-        Specify whether to remove platforms and then to re-add them (overwrites some config.xml values).
+        Should be left at the default (true) value, except if the cordova-prepare step is used.
 
-        `cordova platform rm <platform>`
+        - true: `cordova prepare <platform>` followed by `cordova compile <platform>`
+        - false: `cordova compile <platform>`
       value_options:
       - "true"
       - "false"
@@ -92,11 +97,14 @@ inputs:
       description: |-
         Root directory of your Cordova project, where your Cordova config.xml exists.
       is_required: true
-  - options:
+  - options: --buildFlag="-UseModernBuildSystem=0"
     opts:
       title: "Options to append to the cordova-cli build command"
       description: |-
         Use this input to specify custom options, to append to the end of the cordova-cli build command.
+
+        Cordova does not yet support the new build system made default in XCode 10 (https://github.com/apache/cordova-ios/issues/407).
+        To use the legacy build system add `--buildFlag="-UseModernBuildSystem=0"` to the options string.
 
         Example:
         - `--browserify`
