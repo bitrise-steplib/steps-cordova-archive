@@ -3,18 +3,13 @@ summary: Archives your Cordova project
 description: |-
   Archives your Cordova project.
 
-  First, the step prepare your Cordova project by calling either:
-
-  - `cordova "platform" "rm" "<platform>"`
-  - `cordova "platform" "add" "<platform>"`
-
-  Or: 
+  First, the step prepares your Cordova project by calling:
 
   - `cordova "prepare" "<platform>"`
 
   Then it archives the project by calling:
 
-  - `cordova "build" "--debug|--release" "--device|--emulator" "<platform>" "--buildConfig=$BITRISE_CORDOVA_BUILD_CONFIGURATION"`
+  - `cordova "compile" "--debug|--release" "--device|--emulator" "<platform>" "--buildConfig=$BITRISE_CORDOVA_BUILD_CONFIGURATION"`
 website: https://github.com/bitrise-community/steps-cordova-archive
 source_code_url: https://github.com/bitrise-community/steps-cordova-archive
 support_url: https://github.com/bitrise-community/steps-cordova-archive/issues
