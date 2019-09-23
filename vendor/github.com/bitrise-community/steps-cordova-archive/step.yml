@@ -105,18 +105,6 @@ inputs:
         - `--browserify`
 
         `cordova build [OTHER_PARAMS] [options]`
-  - cache_local_deps: "false"
-    opts:
-      category: Cache
-      title: Cache node_modules
-      description: |
-        Select if the contents of node_modules directory should be cached.
-        `true`: Mark local dependencies to be cached.
-        `false`: Do not use cache.
-      is_required: true
-      value_options:
-      - "true"
-      - "false"
 outputs:
   - BITRISE_IPA_PATH:
     opts:

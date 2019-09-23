@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/bitrise-community/steps-cordova-archive/cordova"
+
 	"github.com/bitrise-community/steps-ionic-archive/jsdependency"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/command"
@@ -44,7 +45,6 @@ type config struct {
 	WorkDir        string `env:"workdir,dir"`
 	Options        string `env:"options"`
 	DeployDir      string `env:"BITRISE_DEPLOY_DIR"`
-	UseCache       bool   `env:"cache_local_deps,opt[true,false]"`
 }
 
 func installDependency(packageManager jsdependency.Tool, name string, version string) error {
@@ -396,11 +396,5 @@ func main() {
 
 	if err := checkBuildProducts(apks, apps, ipas, platforms, configs.Target); err != nil {
 		fail("Build outputs missing: %s", err)
-	}
-
-	if configs.UseCache {
-		if err := cacheNpm(workDir); err != nil {
-			log.Warnf("Failed to mark files for caching, error: %s", err)
-		}
 	}
 }

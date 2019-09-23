@@ -2,31 +2,12 @@
 
 
 [[projects]]
-  digest = "1:f96b6b574a03201b6637e85738ebdb7e6e1592a4782edfcf6b72133beebc42b2"
-  name = "github.com/bitrise-community/steps-cordova-archive"
-  packages = ["cordova"]
-  pruneopts = ""
-  revision = "3095639b003c278870bdba1c67dd8c1f1bdb76c3"
-  version = "2.0.0"
-
-[[projects]]
   branch = "master"
   digest = "1:d1fd0f4dbfa7ece706dcfd06f2279648d8d39505f663605b6f76ada1fabb8cd9"
   name = "github.com/bitrise-community/steps-ionic-archive"
   packages = ["jsdependency"]
   pruneopts = ""
   revision = "7869644a568b04e31b29def8df7233b3a9466ea8"
-
-[[projects]]
-  branch = "master"
-  digest = "1:510cb6dddad542f24598cbb8dd8bc4dd0ff460284d459d118c9d475334e2a337"
-  name = "github.com/bitrise-io/go-steputils"
-  packages = [
-    "cache",
-    "tools",
-  ]
-  pruneopts = ""
-  revision = "f540824d77dfd382ce84fd0ee0a9da2fba1cce0a"
 
 [[projects]]
   branch = "master"
@@ -69,9 +50,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/bitrise-community/steps-cordova-archive/cordova",
     "github.com/bitrise-community/steps-ionic-archive/jsdependency",
-    "github.com/bitrise-io/go-steputils/cache",
     "github.com/bitrise-io/go-utils/colorstring",
     "github.com/bitrise-io/go-utils/command",
     "github.com/bitrise-io/go-utils/errorutil",
