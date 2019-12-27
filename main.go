@@ -368,7 +368,7 @@ func main() {
 	// PROJECT_ROOT/platforms/android/build/outputs/apk/debug/app-debug.apk
 	androidOutputDir := filepath.Join(workDir, "platforms", "android")
 	if exist, err := pathutil.IsDirExists(androidOutputDir); err != nil {
-		fail("Failed to check if dir (%s) exist, error: %s", iosOutputDir, err)
+		fail("Failed to check if dir (%s) exist, error: %s", androidOutputDir, err)
 	} else if exist {
 		androidOutputDirExist = true
 
