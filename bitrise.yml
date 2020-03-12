@@ -119,6 +119,9 @@ workflows:
             elif [[ ! -e "$BITRISE_APK_PATH" ]]; then
                 echo "Does not exist: apk file's path"
                 exit 1
+            elif [[ ! -e "$BITRISE_AAB_PATH" ]]; then
+                echo "Does not exist: aab file's path"
+                exit 1
             fi
     - change-workdir:
         title: Change back to original working directory

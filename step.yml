@@ -136,3 +136,6 @@ outputs:
   - BITRISE_APK_PATH: ""
     opts:
       title: The created android .apk file's path
+  - BITRISE_AAB_PATH: ""
+    opts:
+      title: The created android .aab file's path

@@ -5,6 +5,7 @@ import "testing"
 func Test_checkBuildProducts(t *testing.T) {
 	type args struct {
 		apks      []string
+		aabs      []string
 		apps      []string
 		ipas      []string
 		platforms []string
@@ -21,6 +22,7 @@ func Test_checkBuildProducts(t *testing.T) {
 				[]string{},
 				[]string{},
 				[]string{},
+				[]string{},
 				[]string{"ios", "android"},
 				"emulator",
 			},
@@ -29,6 +31,7 @@ func Test_checkBuildProducts(t *testing.T) {
 		{
 			"No android FAIL, ios generated",
 			args{
+				[]string{},
 				[]string{},
 				[]string{"/path.app"},
 				[]string{},
@@ -43,6 +46,19 @@ func Test_checkBuildProducts(t *testing.T) {
 				[]string{"/path.apk"},
 				[]string{},
 				[]string{},
+				[]string{},
+				[]string{"ios", "android"},
+				"emulator",
+			},
+			true,
+		},
+		{
+			"No ios FAIL, android generated",
+			args{
+				[]string{},
+				[]string{"/path.aab"},
+				[]string{},
+				[]string{},
 				[]string{"ios", "android"},
 				"emulator",
 			},
@@ -51,6 +67,7 @@ func Test_checkBuildProducts(t *testing.T) {
 		{
 			"ios emulator target OK",
 			args{
+				[]string{},
 				[]string{},
 				[]string{"/path.app"},
 				[]string{},
@@ -64,6 +81,7 @@ func Test_checkBuildProducts(t *testing.T) {
 			args{
 				[]string{},
 				[]string{},
+				[]string{},
 				[]string{"/path.apk"},
 				[]string{"ios"},
 				"emulator",
@@ -73,6 +91,7 @@ func Test_checkBuildProducts(t *testing.T) {
 		{
 			"ios device target, app generated FAIL",
 			args{
+				[]string{},
 				[]string{},
 				[]string{"/app_path.app"},
 				[]string{},
@@ -86,6 +105,19 @@ func Test_checkBuildProducts(t *testing.T) {
 			args{
 				[]string{"/path.apk"},
 				[]string{},
+				[]string{},
+				[]string{"/path.ipa"},
+				[]string{"ios, android"},
+				"device",
+			},
+			false,
+		},
+		{
+			"ios, android OK",
+			args{
+				[]string{},
+				[]string{"/path.aab"},
+				[]string{},
 				[]string{"/path.ipa"},
 				[]string{"ios, android"},
 				"device",
@@ -95,7 +127,7 @@ func Test_checkBuildProducts(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := checkBuildProducts(tt.args.apks, tt.args.apps, tt.args.ipas, tt.args.platforms, tt.args.target); (err != nil) != tt.wantErr {
+			if err := checkBuildProducts(tt.args.apks, tt.args.aabs, tt.args.apps, tt.args.ipas, tt.args.platforms, tt.args.target); (err != nil) != tt.wantErr {
 				t.Errorf("checkBuildProducts() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
