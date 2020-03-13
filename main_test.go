@@ -41,7 +41,7 @@ func Test_checkBuildProducts(t *testing.T) {
 			true,
 		},
 		{
-			"No ios FAIL, android generated",
+			"No ios FAIL, android apk generated",
 			args{
 				[]string{"/path.apk"},
 				[]string{},
@@ -53,14 +53,14 @@ func Test_checkBuildProducts(t *testing.T) {
 			true,
 		},
 		{
-			"No ios FAIL, android generated",
+			"No ios FAIL, android aab generated",
 			args{
 				[]string{},
 				[]string{"/path.aab"},
 				[]string{},
 				[]string{},
 				[]string{"ios", "android"},
-				"emulator",
+				"device",
 			},
 			true,
 		},
