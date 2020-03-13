@@ -149,11 +149,8 @@ func findArtifact(rootDir, ext string, buildStart time.Time) ([]string, error) {
 func checkBuildProducts(apks []string, aabs []string, apps []string, ipas []string, platforms []string, target string) error {
 	// if android in platforms
 	if sliceutil.IsStringInSlice("android", platforms) {
-		if len(apks) == 0 && target == "emulator" {
-			return errors.New("No apk generated")
-		}
-		if len(aabs) == 0 && target == "device" {
-			return errors.New("no aabs generated")
+		if len(apks) == 0 || len(aabs) == 0 {
+			return errors.New("No apk or aab generated")
 		}
 	}
 	// if ios in platforms
