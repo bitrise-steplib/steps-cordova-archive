@@ -75,7 +75,12 @@ workflows:
     - script:
         # Needed to test cordova prepare
         inputs:
-        - content: rm -rf ./platforms
+        - content: |-
+            rm -rf ./platforms
+            cordova platform rm ios
+            cordova platform add ios
+            cordova platform remove android
+            cordova platform add android@7.X.X
     - yarn:
         run_if: '{{enveq "USE_YARN" "true"}}'
         inputs:
