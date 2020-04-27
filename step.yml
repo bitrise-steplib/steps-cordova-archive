@@ -19,7 +19,7 @@ type_tags:
 - build
 deps:
   brew:
-  - name: go
+  - name: node
   - name: gradle
 toolkit:
   go:
