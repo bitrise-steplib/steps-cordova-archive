@@ -91,13 +91,13 @@ workflows:
         title: Cordova prepare
         run_if: '{{enveq "RUN_PREPARE_STEP" "true"}}'
         inputs:
-        - cordova_version: latest
+        # - cordova_version: latest
     - path::./:
         title: Cordova archive
         inputs:
         - options: --buildFlag="-UseModernBuildSystem=0"
         - target: emulator
-        - cordova_version: latest
+        # - cordova_version: latest
         - run_cordova_prepare: ${RUN_PREPARE_IN_ARCHIVE}
     - script:
         title: Output test
