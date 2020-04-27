@@ -81,6 +81,8 @@ workflows:
             cordova platform add ios
             cordova platform remove android
             cordova platform add android@7.X.X
+
+            envman unset --key ANDROID_NDK_HOME
     - yarn:
         run_if: '{{enveq "USE_YARN" "true"}}'
         inputs:
