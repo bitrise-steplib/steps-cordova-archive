@@ -10,7 +10,7 @@ workflows:
   test:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
-    - SAMPLE_APP_BRANCH: TOOL-1881-fix-ci
+    - SAMPLE_APP_BRANCH: master
     before_run:
     - audit-this-step
     steps:
