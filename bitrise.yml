@@ -75,7 +75,14 @@ workflows:
     - script:
         # Needed to test cordova prepare
         inputs:
-        - content: rm -rf ./platforms
+        - content: |-
+            rm -rf ./platforms
+            cordova platform rm ios
+            cordova platform add ios
+            cordova platform remove android
+            cordova platform add android@7.X.X
+
+            envman unset --key ANDROID_NDK_HOME
     - yarn:
         run_if: '{{enveq "USE_YARN" "true"}}'
         inputs:
@@ -84,13 +91,13 @@ workflows:
         title: Cordova prepare
         run_if: '{{enveq "RUN_PREPARE_STEP" "true"}}'
         inputs:
-        - cordova_version: latest
+        # - cordova_version: latest
     - path::./:
         title: Cordova archive
         inputs:
         - options: --buildFlag="-UseModernBuildSystem=0"
         - target: emulator
-        - cordova_version: latest
+        # - cordova_version: latest
         - run_cordova_prepare: ${RUN_PREPARE_IN_ARCHIVE}
     - script:
         title: Output test
