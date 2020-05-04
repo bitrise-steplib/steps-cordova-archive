@@ -1,15 +1,42 @@
-title: Cordova archive
-summary: Archives your Cordova project
+title: Cordova Archive
+summary: Creates an archive of your Cordova project by calling `cordova prepare` and then `cordova compile`, using your Cordova build configuration.
 description: |-
-  Archives your Cordova project.
 
-  First, the step prepares your Cordova project by calling:
+  The Step creates an archive of your Cordova project: it prepares the project by calling `cordova prepare` and then archives it by calling `cordova compile` with the Cordova CLI.
 
-  - `cordova "prepare" "<platform>"`
+  If you want to perform code signing on your app, the Step requires the **Generate Cordova build configuration** Step: this Step provides the configuration for the **Cordova Archive** Step.
 
-  Then it archives the project by calling:
+  ### Configuring the Step
 
-  - `cordova "compile" "--debug|--release" "--device|--emulator" "<platform>" "--buildConfig=$BITRISE_CORDOVA_BUILD_CONFIGURATION"`
+  The Step needs to know the platform (iOS, Android, or both), the mode (release or debug), and the target (device or emulator) of your build. You decide whether you want the Step to run the `cordova prepare` command or you want to use the **Cordova Prepare** Step.
+
+  1. In the **Platform to use in cordova-cli commands** input, set the platforms you need.
+  1. In the **Build command configuration** input, set the build mode for the app.
+
+     This can be either `release` or `debug`.
+
+  1. In the **Build command target** input, set whether you want to build the app for a device or an emulator.
+
+  1. If you use the **Cordova Prepare** Step, set the **Should `cordova prepare` be executed before `cordova compile`?** input to `false`.
+
+  1. If you want to deploy your app, the **Build configuration path to describe code signing properties** input should be set to `$BITRISE_CORDOVA_BUILD_CONFIGURATION`.
+
+     This Environment Variable is exposed by the **Generate Cordova build configuration** Step.
+
+  ### Troubleshooting
+
+  - If you run a `release` build, make sure that your code signing configurations are correct. The Step will fail if the **Generate Cordova build configuration** Step does not have the required code signing inputs - for example, if you mean to deploy an iOS app to the App Store, you need a Distribution code signing identity. And of course check the code signing files that you uploaded to Bitrise! 
+
+
+  ### Useful links
+
+  - [Getting started with Ionic/Cordova apps](https://devcenter.bitrise.io/getting-started/getting-started-with-ionic-cordova-apps/)
+
+  ### Related Steps
+
+  - [Generate Cordova build configuration](https://www.bitrise.io/integrations/steps/flutter-installer)
+  - [Cordova Prepare](https://www.bitrise.io/integrations/steps/cordova-prepare)
+  - [Manipulate Cordova config.xml](https://www.bitrise.io/integrations/steps/cordova-config)
 website: https://github.com/bitrise-community/steps-cordova-archive
 source_code_url: https://github.com/bitrise-community/steps-cordova-archive
 support_url: https://github.com/bitrise-community/steps-cordova-archive/issues
