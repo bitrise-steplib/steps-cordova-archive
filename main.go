@@ -211,8 +211,6 @@ func main() {
 	if configs.CordovaVersion != "" {
 		log.Printf("\n")
 		log.Infof("Updating cordova version to: %s", configs.CordovaVersion)
-		packageName := "cordova"
-		packageName += "@" + configs.CordovaVersion
 
 		packageManager, err := jsdependency.DetectTool(workDir)
 		if err != nil {
