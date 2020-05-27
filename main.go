@@ -149,8 +149,8 @@ func findArtifact(rootDir, ext string, buildStart time.Time) ([]string, error) {
 func checkBuildProducts(apks []string, aabs []string, apps []string, ipas []string, platforms []string, target string) error {
 	// if android in platforms
 	if sliceutil.IsStringInSlice("android", platforms) {
-		if len(apks) == 0 || len(aabs) == 0 {
-			return errors.New("No apk or aab generated")
+		if len(apks) == 0 && len(aabs) == 0 {
+			return errors.New("no apk or aab generated")
 		}
 	}
 	// if ios in platforms
@@ -401,7 +401,7 @@ func main() {
 			if exportedPth, err := moveAndExportOutputs(aabs, configs.DeployDir, aabPathEnvKey, false); err != nil {
 				fail("Failed to export aabs, error: %s", err)
 			} else {
-				log.Donef("The apk path is now available in the Environment Variable: %s (value: %s)", aabPathEnvKey, exportedPth)
+				log.Donef("The aab path is now available in the Environment Variable: %s (value: %s)", aabPathEnvKey, exportedPth)
 			}
 		}
 	}
