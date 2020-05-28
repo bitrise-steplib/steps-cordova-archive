@@ -80,7 +80,7 @@ workflows:
             cordova platform rm ios
             cordova platform add ios
             cordova platform remove android
-            cordova platform add android@7.X.X
+            cordova platform add android@8.X.X
 
             envman unset --key ANDROID_NDK_HOME
     - yarn:
@@ -95,7 +95,6 @@ workflows:
     - path::./:
         title: Cordova archive
         inputs:
-        - options: --buildFlag="-UseModernBuildSystem=0"
         - target: emulator
         # - cordova_version: latest
         - run_cordova_prepare: ${RUN_PREPARE_IN_ARCHIVE}
@@ -119,7 +118,21 @@ workflows:
             elif [[ ! -e "$BITRISE_APK_PATH" ]]; then
                 echo "Does not exist: apk file's path"
                 exit 1
-            elif [[ ! -e "$BITRISE_AAB_PATH" ]]; then
+            fi
+    - path::./:
+        title: Cordova archive android bubdle
+        inputs:
+        - platform: android
+        - options: -- --packageType="bundle"
+        - target: emulator
+        - cordova_version:
+        - run_cordova_prepare: ${RUN_PREPARE_IN_ARCHIVE}
+    - script:
+        title: Output test
+        inputs:
+        - content: |
+            #!/usr/bin/env bash
+            if [[ ! -e "$BITRISE_AAB_PATH" ]]; then
                 echo "Does not exist: aab file's path"
                 exit 1
             fi
