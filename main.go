@@ -32,6 +32,7 @@ const (
 	dsymZipPathEnvKey = "BITRISE_DSYM_PATH"
 
 	apkPathEnvKey = "BITRISE_APK_PATH"
+	aabPathEnvKey = "BITRISE_AAB_PATH"
 )
 
 type config struct {
@@ -145,10 +146,12 @@ func findArtifact(rootDir, ext string, buildStart time.Time) ([]string, error) {
 	return matches, nil
 }
 
-func checkBuildProducts(apks []string, apps []string, ipas []string, platforms []string, target string) error {
+func checkBuildProducts(apks []string, aabs []string, apps []string, ipas []string, platforms []string, target string) error {
 	// if android in platforms
-	if len(apks) == 0 && sliceutil.IsStringInSlice("android", platforms) {
-		return errors.New("No apk generated")
+	if sliceutil.IsStringInSlice("android", platforms) {
+		if len(apks) == 0 && len(aabs) == 0 {
+			return errors.New("no apk or aab generated")
+		}
 	}
 	// if ios in platforms
 	if sliceutil.IsStringInSlice("ios", platforms) {
@@ -208,8 +211,6 @@ func main() {
 	if configs.CordovaVersion != "" {
 		log.Printf("\n")
 		log.Infof("Updating cordova version to: %s", configs.CordovaVersion)
-		packageName := "cordova"
-		packageName += "@" + configs.CordovaVersion
 
 		packageManager, err := jsdependency.DetectTool(workDir)
 		if err != nil {
@@ -361,11 +362,12 @@ func main() {
 		}
 	}
 
-	var apks []string
+	var apks, aabs []string
 	androidOutputDirExist := false
 	// examples for apk paths:
 	// PROJECT_ROOT/platforms/android/app/build/outputs/apk/debug/app-debug.apk
 	// PROJECT_ROOT/platforms/android/build/outputs/apk/debug/app-debug.apk
+	// PROJECT_ROOT/platforms/android/build/outputs/bundle/release/app.aab
 	androidOutputDir := filepath.Join(workDir, "platforms", "android")
 	if exist, err := pathutil.IsDirExists(androidOutputDir); err != nil {
 		fail("Failed to check if dir (%s) exist, error: %s", androidOutputDir, err)
@@ -387,6 +389,19 @@ func main() {
 				log.Donef("The apk path is now available in the Environment Variable: %s (value: %s)", apkPathEnvKey, exportedPth)
 			}
 		}
+
+		aabs, err = findArtifact(androidOutputDir, "aab", compileStart)
+		if err != nil {
+			fail("Failed to find aab in dir (%s), error: %s", androidOutputDir, err)
+		}
+
+		if len(aabs) > 0 {
+			if exportedPth, err := moveAndExportOutputs(aabs, configs.DeployDir, aabPathEnvKey, false); err != nil {
+				fail("Failed to export aabs, error: %s", err)
+			} else {
+				log.Donef("The aab path is now available in the Environment Variable: %s (value: %s)", aabPathEnvKey, exportedPth)
+			}
+		}
 	}
 
 	if !iosOutputDirExist && !androidOutputDirExist {
@@ -394,7 +409,7 @@ func main() {
 		fail("No output generated")
 	}
 
-	if err := checkBuildProducts(apks, apps, ipas, platforms, configs.Target); err != nil {
+	if err := checkBuildProducts(apks, aabs, apps, ipas, platforms, configs.Target); err != nil {
 		fail("Build outputs missing: %s", err)
 	}
 
