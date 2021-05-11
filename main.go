@@ -344,7 +344,7 @@ func main() {
 
 		if len(apps) > 0 {
 			if exportedPth, err := moveAndExportOutputs(apps, configs.DeployDir, appDirPathEnvKey, true); err != nil {
-				log.Warnf("Failed to export apps, error: %s", err)
+				fail("Failed to export apps, error: %s", err)
 			} else {
 				log.Donef("The app dir path is now available in the Environment Variable: %s (value: %s)", appDirPathEnvKey, exportedPth)
 
