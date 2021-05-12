@@ -65,7 +65,7 @@ func Test_checkBuildProducts(t *testing.T) {
 			true,
 		},
 		{
-			"ios emulator target OK",
+			"ios emulator target, app generated, OK",
 			args{
 				[]string{},
 				[]string{},
@@ -77,19 +77,31 @@ func Test_checkBuildProducts(t *testing.T) {
 			false,
 		},
 		{
-			"ios emulator target, ipa generated FAIL",
+			"ios emulator target, ipa generated, FAIL",
 			args{
 				[]string{},
 				[]string{},
 				[]string{},
-				[]string{"/path.apk"},
+				[]string{"/path.ipa"},
 				[]string{"ios"},
 				"emulator",
 			},
 			true,
 		},
 		{
-			"ios device target, app generated FAIL",
+			"ios device target, ipa generated, OK",
+			args{
+				[]string{},
+				[]string{},
+				[]string{},
+				[]string{"/app_path.ipa"},
+				[]string{"ios"},
+				"device",
+			},
+			false,
+		},
+		{
+			"ios device target, app generated, FAIL",
 			args{
 				[]string{},
 				[]string{},
