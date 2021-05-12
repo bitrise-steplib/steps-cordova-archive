@@ -305,7 +305,7 @@ func main() {
 			fail("Failed to find ipas in dir (%s), error: %s", iosOutputDir, err)
 		}
 
-		if len(ipas) > 0 {
+		if configs.Target == "device" && len(ipas) > 0 {
 			if exportedPth, err := moveAndExportOutputs(ipas, configs.DeployDir, ipaPathEnvKey, false); err != nil {
 				fail("Failed to export ipas, error: %s", err)
 			} else {
@@ -342,7 +342,7 @@ func main() {
 			fail("Failed to find apps in dir (%s), error: %s", iosOutputDir, err)
 		}
 
-		if len(apps) > 0 {
+		if configs.Target == "emulator" && len(apps) > 0 {
 			if exportedPth, err := moveAndExportOutputs(apps, configs.DeployDir, appDirPathEnvKey, true); err != nil {
 				fail("Failed to export apps, error: %s", err)
 			} else {
