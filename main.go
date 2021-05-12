@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bitrise-io/go-steputils/jsdependency"
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/colorstring"
@@ -18,7 +19,6 @@ import (
 	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/bitrise-io/go-utils/ziputil"
 	"github.com/bitrise-steplib/steps-cordova-archive/cordova"
-	"github.com/bitrise-steplib/steps-ionic-archive/jsdependency"
 	"github.com/kballard/go-shellquote"
 )
 
