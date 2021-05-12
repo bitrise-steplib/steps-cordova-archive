@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bitrise-community/steps-cordova-archive/cordova"
-	"github.com/bitrise-community/steps-ionic-archive/jsdependency"
+	"github.com/bitrise-io/go-steputils/stepconf"
+	"github.com/bitrise-io/go-steputils/tools"
 	"github.com/bitrise-io/go-utils/colorstring"
 	"github.com/bitrise-io/go-utils/command"
 	"github.com/bitrise-io/go-utils/errorutil"
@@ -17,8 +17,8 @@ import (
 	"github.com/bitrise-io/go-utils/pathutil"
 	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/bitrise-io/go-utils/ziputil"
-	"github.com/bitrise-tools/go-steputils/stepconf"
-	"github.com/bitrise-tools/go-steputils/tools"
+	"github.com/bitrise-steplib/steps-cordova-archive/cordova"
+	"github.com/bitrise-steplib/steps-ionic-archive/jsdependency"
 	"github.com/kballard/go-shellquote"
 )
 
@@ -55,15 +55,15 @@ func installDependency(packageManager jsdependency.Tool, name string, version st
 	}
 	for i, cmd := range cmdSlice {
 		fmt.Println()
-		log.Donef("$ %s", cmd.PrintableCommandArgs())
+		log.Donef("$ %s", cmd.Slice.PrintableCommandArgs())
 		fmt.Println()
 
 		// Yarn returns an error if the package is not added before removal, ignoring
-		if out, err := cmd.RunAndReturnTrimmedCombinedOutput(); err != nil && !(packageManager == jsdependency.Yarn && i == 0) {
+		if out, err := cmd.Slice.RunAndReturnTrimmedCombinedOutput(); err != nil && !(packageManager == jsdependency.Yarn && i == 0) {
 			if errorutil.IsExitStatusError(err) {
-				return fmt.Errorf("Failed to update %s version: %s failed, output: %s", name, cmd.PrintableCommandArgs(), out)
+				return fmt.Errorf("Failed to update %s version: %s failed, output: %s", name, cmd.Slice.PrintableCommandArgs(), out)
 			}
-			return fmt.Errorf("Failed to update %s version: %s failed, error: %s", name, cmd.PrintableCommandArgs(), err)
+			return fmt.Errorf("Failed to update %s version: %s failed, error: %s", name, cmd.Slice.PrintableCommandArgs(), err)
 		}
 	}
 	return nil

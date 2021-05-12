@@ -1,14 +1,9 @@
-# github.com/bitrise-community/steps-cordova-archive v0.0.0-20181212111956-3095639b003c
-## explicit
-github.com/bitrise-community/steps-cordova-archive/cordova
-# github.com/bitrise-community/steps-ionic-archive v0.0.0-20181207135302-7869644a568b
-## explicit
-github.com/bitrise-community/steps-ionic-archive/jsdependency
-# github.com/bitrise-io/go-steputils v0.0.0-20190806143347-f540824d77df
+# github.com/bitrise-io/go-steputils v0.0.0-20200227150459-94490ca44ddb
 ## explicit
 github.com/bitrise-io/go-steputils/cache
+github.com/bitrise-io/go-steputils/stepconf
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-utils v0.0.0-20181112170818-2a09aab8380d
+# github.com/bitrise-io/go-utils v0.0.0-20200629150542-0c47c16813a4
 ## explicit
 github.com/bitrise-io/go-utils/colorstring
 github.com/bitrise-io/go-utils/command
@@ -19,10 +14,12 @@ github.com/bitrise-io/go-utils/pathutil
 github.com/bitrise-io/go-utils/pointers
 github.com/bitrise-io/go-utils/sliceutil
 github.com/bitrise-io/go-utils/ziputil
-# github.com/bitrise-tools/go-steputils v0.0.0-20181109115532-ec226b2359fc
+# github.com/bitrise-steplib/steps-cordova-archive v0.0.0-20210401121956-8c11ef01e45b
 ## explicit
-github.com/bitrise-tools/go-steputils/stepconf
-github.com/bitrise-tools/go-steputils/tools
+github.com/bitrise-steplib/steps-cordova-archive/cordova
+# github.com/bitrise-steplib/steps-ionic-archive v0.0.0-20210419100055-077ab53c67aa
+## explicit
+github.com/bitrise-steplib/steps-ionic-archive/jsdependency
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 ## explicit
 github.com/kballard/go-shellquote
