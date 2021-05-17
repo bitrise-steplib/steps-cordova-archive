@@ -1,4 +1,4 @@
-module bitrise-steplib/steps-cordova-archive
+module github.com/bitrise-steplib/steps-cordova-archive
 
 go 1.15
 
