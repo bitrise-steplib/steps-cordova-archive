@@ -18,3 +18,7 @@ github.com/bitrise-io/go-utils/ziputil
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 ## explicit
 github.com/kballard/go-shellquote
+# golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
+## explicit
+# golang.org/x/tools v0.1.1
+## explicit
