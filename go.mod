@@ -1,6 +1,6 @@
 module github.com/bitrise-steplib/steps-cordova-archive
 
-go 1.15
+go 1.16
 
 require (
 	github.com/bitrise-io/go-steputils v0.0.0-20210514150206-5b6261447e77
