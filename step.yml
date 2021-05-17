@@ -37,9 +37,9 @@ description: |-
   - [Generate Cordova build configuration](https://www.bitrise.io/integrations/steps/generate-cordova-build-configuration)
   - [Cordova Prepare](https://www.bitrise.io/integrations/steps/cordova-prepare)
   - [Manipulate Cordova config.xml](https://www.bitrise.io/integrations/steps/cordova-config)
-website: https://github.com/bitrise-community/steps-cordova-archive
-source_code_url: https://github.com/bitrise-community/steps-cordova-archive
-support_url: https://github.com/bitrise-community/steps-cordova-archive/issues
+website: https://github.com/bitrise-steplib/steps-cordova-archive
+source_code_url: https://github.com/bitrise-steplib/steps-cordova-archive
+support_url: https://github.com/bitrise-steplib/steps-cordova-archive/issues
 project_type_tags:
 - cordova
 type_tags:
@@ -50,7 +50,7 @@ deps:
   - name: gradle
 toolkit:
   go:
-    package_name: github.com/bitrise-community/steps-cordova-archive
+    package_name: github.com/bitrise-steplib/steps-cordova-archive
 inputs:
   - platform: "ios,android"
     opts:
