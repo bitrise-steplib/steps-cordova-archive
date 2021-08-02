@@ -104,7 +104,7 @@ inputs:
       - "true"
       - "false"
       is_required: true
-  - cordova_version: 
+  - cordova_version:
     opts:
       title: "Cordova version"
       description: |-
@@ -125,8 +125,6 @@ inputs:
       description: |-
         Use this input to specify custom options, to append to the end of the cordova-cli build command.
 
-        Add `-- --packageType="bundle"` to build an Android bundle (aab). (https://github.com/apache/cordova-android/pull/764)
-
         The new Xcode build system is now supported in cordova-ios@5.0.0 (https://github.com/apache/cordova-ios/issues/407).
         To use the legacy build system add `--buildFlag="-UseModernBuildSystem=0"` to the options string.
 
@@ -146,6 +144,17 @@ inputs:
       value_options:
       - "true"
       - "false"
+  - android_app_type: apk
+    opts:
+      category: Android
+      title: Android app type
+      summary: Distribution type when building the Android app
+      description: Distribution type when building the Android app
+      is_required: true
+      value_options:
+      - apk
+      - aab
+
 outputs:
   - BITRISE_IPA_PATH:
     opts:
