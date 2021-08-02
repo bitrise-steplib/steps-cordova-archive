@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/kballard/go-shellquote"
 	"os"
 	"path/filepath"
 	"strings"
@@ -19,7 +20,6 @@ import (
 	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/bitrise-io/go-utils/ziputil"
 	"github.com/bitrise-steplib/steps-cordova-archive/cordova"
-	"github.com/kballard/go-shellquote"
 )
 
 const (
@@ -46,6 +46,7 @@ type config struct {
 	Options        string `env:"options"`
 	DeployDir      string `env:"BITRISE_DEPLOY_DIR"`
 	UseCache       bool   `env:"cache_local_deps,opt[true,false]"`
+	AndroidAppType string `env:"android_app_type,opt[apk,aab]"`
 }
 
 func installDependency(packageManager jsdependency.Tool, name string, version string) error {
@@ -245,6 +246,7 @@ func main() {
 		builder.SetPlatforms(platforms...)
 	}
 
+	builder.SetAndroidAppType(configs.AndroidAppType)
 	builder.SetConfiguration(configs.Configuration)
 	builder.SetTarget(configs.Target)
 
