@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kballard/go-shellquote"
-
 	"github.com/bitrise-io/go-steputils/jsdependency"
 	"github.com/bitrise-io/go-steputils/stepconf"
 	"github.com/bitrise-io/go-steputils/tools"
@@ -21,6 +19,7 @@ import (
 	"github.com/bitrise-io/go-utils/sliceutil"
 	"github.com/bitrise-io/go-utils/ziputil"
 	"github.com/bitrise-steplib/steps-cordova-archive/cordova"
+	"github.com/kballard/go-shellquote"
 )
 
 const (
