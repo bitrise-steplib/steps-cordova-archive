@@ -3,11 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/kballard/go-shellquote"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/kballard/go-shellquote"
 
 	"github.com/bitrise-io/go-steputils/jsdependency"
 	"github.com/bitrise-io/go-steputils/stepconf"
@@ -44,6 +45,7 @@ type config struct {
 	CordovaVersion string `env:"cordova_version"`
 	WorkDir        string `env:"workdir,dir"`
 	Options        string `env:"options"`
+	BuildSystem    string `env:"build_system,opt[legacy,modern]"`
 	DeployDir      string `env:"BITRISE_DEPLOY_DIR"`
 	UseCache       bool   `env:"cache_local_deps,opt[true,false]"`
 	AndroidAppType string `env:"android_app_type,opt[apk,aab]"`
@@ -257,6 +259,14 @@ func main() {
 		}
 
 		builder.SetCustomOptions(options...)
+	}
+
+	if configs.BuildSystem == "legacy" {
+		legacyQuery := "--buildFlag='-UseModernBuildSystem=0'"
+		builder.SetCustomOptions(legacyQuery)
+	} else if configs.BuildSystem == "modern" {
+		modernQuery := "--buildFlag='-UseModernBuildSystem=YES'"
+		builder.SetCustomOptions(modernQuery)
 	}
 
 	builder.SetBuildConfig(configs.BuildConfig)
