@@ -49,6 +49,9 @@ workflows:
 
   _common:
     steps:
+    - set-java-version:
+        inputs:
+        - set_java_version: 8
     - script:
         inputs:
         - content: |-
