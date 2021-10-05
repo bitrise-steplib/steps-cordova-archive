@@ -123,10 +123,10 @@ workflows:
                 exit 1
             fi
     - path::./:
-        title: Cordova archive android bubdle
+        title: Cordova archive android bundle
         inputs:
         - platform: android
-        - options: -- --packageType="bundle"
+        - android_app_type: aab
         - target: emulator
         - cordova_version:
         - run_cordova_prepare: ${RUN_PREPARE_IN_ARCHIVE}
