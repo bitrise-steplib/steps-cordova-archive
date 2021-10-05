@@ -132,9 +132,9 @@ inputs:
         `cordova build [OTHER_PARAMS] [options]`
   - build_system: "modern"
     opts:
-      title: "Build system"
+      title: "Xcode build system"
       description: |-
-        The build system to use.
+        The Xcode build system to use.
 
         - legacy: Use the legacy build system.
         - modern: Use the new Xcode build system.

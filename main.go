@@ -264,7 +264,7 @@ func main() {
 		legacyQuery := "--buildFlag='-UseModernBuildSystem=0'"
 		builder.SetCustomOptions(legacyQuery)
 	} else if configs.BuildSystem == "modern" {
-		modernQuery := "--buildFlag='-UseModernBuildSystem=YES'"
+		modernQuery := "--buildFlag='-UseModernBuildSystem=1'"
 		builder.SetCustomOptions(modernQuery)
 	}
 
