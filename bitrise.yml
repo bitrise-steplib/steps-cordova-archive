@@ -3,7 +3,7 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:
-  - STEP_VERSION: 1.2.1
+  - STEP_VERSION: 2.0.0
   - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
 
 workflows:
@@ -49,6 +49,9 @@ workflows:
 
   _common:
     steps:
+    - set-java-version:
+        inputs:
+        - set_java_version: 8
     - script:
         inputs:
         - content: |-
@@ -120,10 +123,10 @@ workflows:
                 exit 1
             fi
     - path::./:
-        title: Cordova archive android bubdle
+        title: Cordova archive android bundle
         inputs:
         - platform: android
-        - options: -- --packageType="bundle"
+        - android_app_type: aab
         - target: emulator
         - cordova_version:
         - run_cordova_prepare: ${RUN_PREPARE_IN_ARCHIVE}

@@ -119,19 +119,29 @@ inputs:
       description: |-
         Root directory of your Cordova project, where your Cordova config.xml exists.
       is_required: true
-  - options: --buildFlag="-UseModernBuildSystem=0"
+  - options:
     opts:
       title: "Options to append to the cordova-cli build command"
       description: |-
         Use this input to specify custom options, to append to the end of the cordova-cli build command.
 
         The new Xcode build system is now supported in cordova-ios@5.0.0 (https://github.com/apache/cordova-ios/issues/407).
-        To use the legacy build system add `--buildFlag="-UseModernBuildSystem=0"` to the options string.
-
         Example:
         - `--browserify`
 
         `cordova build [OTHER_PARAMS] [options]`
+  - build_system: "modern"
+    opts:
+      title: "Xcode build system"
+      description: |-
+        The Xcode build system to use.
+
+        - legacy: Use the legacy build system.
+        - modern: Use the new Xcode build system.
+      value_options:
+      - legacy
+      - modern
+      is_required: true
   - cache_local_deps: "false"
     opts:
       category: Cache

@@ -1,6 +1,11 @@
-## Changelog (Current version: 1.2.1)
+## Changelog (Current version: 2.0.0)
 
 -----------------
+
+### 2.0.0 (2021 Oct 05)
+
+* [00e8843] Bumping version to 2.0.0
+* [840a266] Update option step and create new option for select build system without arguemnts (#50)
 
 ### 1.2.1 (2018 Nov 07)
 
