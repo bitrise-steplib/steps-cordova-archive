@@ -306,6 +306,9 @@ func main() {
 	iosOutputDirExist := false
 	iosOutputDir := filepath.Join(workDir, "platforms", "ios", "build", configs.Target)
 	log.Warnf("Output dir %s", iosOutputDir)
+	log.Warnf("Target %s", configs.Target)
+	log.Warnf("Configuration %s", configs.Configuration)
+	log.Warnf("Cordova versions %s", configs.CordovaVersion)
 	if exist, err := pathutil.IsDirExists(iosOutputDir); err != nil {
 		fail("Failed to check if dir (%s) exist, error: %s", iosOutputDir, err)
 		log.Warnf("BP2 failing ios")
