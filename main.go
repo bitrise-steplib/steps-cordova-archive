@@ -374,10 +374,12 @@ func main() {
 
 				log.Donef("The app.zip path is now available in the Environment Variable: %s (value: %s)", appZipPathEnvKey, zippedExportedPth)
 			}
+		} else {
+			log.Warnf("BP4 directory does not exist")
 		}
 	}
 
-	log.Warnf("BP4 Android checks that must be skipped")
+	log.Warnf("BP5 Android checks that must be skipped")
 
 	var apks, aabs []string
 	androidOutputDirExist := false
@@ -421,7 +423,7 @@ func main() {
 		}
 	}
 
-	log.Warnf("BP5 checking for existing directories")
+	log.Warnf("BP6 checking for existing directories")
 
 	if !iosOutputDirExist && !androidOutputDirExist {
 		log.Warnf("No ios nor android platform's output dir exist")
