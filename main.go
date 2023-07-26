@@ -311,21 +311,13 @@ func main() {
 		fail("cordova build failed, error: %s", err)
 	}
 
-	log.Warnf("BP1 collecting outputs")
-
 	// collect outputs
 	var ipas, apps []string
 	iosOutputDirExist := false
 	iosOutputDir := filepath.Join(workDir, "platforms", "ios", "build", findIosTargetPathComponent(configs.Target, configs.Configuration, configs.CordovaVersion))
-	log.Warnf("Output dir %s", iosOutputDir)
-	log.Warnf("Target %s", configs.Target)
-	log.Warnf("Configuration %s", configs.Configuration)
-	log.Warnf("Cordova versions %s", configs.CordovaVersion)
 	if exist, err := pathutil.IsDirExists(iosOutputDir); err != nil {
 		fail("Failed to check if dir (%s) exist, error: %s", iosOutputDir, err)
-		log.Warnf("BP2 failing ios")
 	} else if exist {
-		log.Warnf("BP3 ios exists")
 		iosOutputDirExist = true
 
 		fmt.Println()
@@ -391,11 +383,7 @@ func main() {
 				log.Donef("The app.zip path is now available in the Environment Variable: %s (value: %s)", appZipPathEnvKey, zippedExportedPth)
 			}
 		}
-	} else {
-		log.Warnf("BP4 directory does not exist")
 	}
-
-	log.Warnf("BP5 Android checks that must be skipped")
 
 	var apks, aabs []string
 	androidOutputDirExist := false
@@ -438,8 +426,6 @@ func main() {
 			}
 		}
 	}
-
-	log.Warnf("BP6 checking for existing directories")
 
 	if !iosOutputDirExist && !androidOutputDirExist {
 		log.Warnf("No ios nor android platform's output dir exist")
