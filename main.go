@@ -374,9 +374,9 @@ func main() {
 
 				log.Donef("The app.zip path is now available in the Environment Variable: %s (value: %s)", appZipPathEnvKey, zippedExportedPth)
 			}
-		} else {
-			log.Warnf("BP4 directory does not exist")
 		}
+	} else {
+		log.Warnf("BP4 directory does not exist")
 	}
 
 	log.Warnf("BP5 Android checks that must be skipped")
