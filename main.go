@@ -299,13 +299,17 @@ func main() {
 		fail("cordova build failed, error: %s", err)
 	}
 
+	log.Warnf("BP1 collecting outputs")
+
 	// collect outputs
 	var ipas, apps []string
 	iosOutputDirExist := false
 	iosOutputDir := filepath.Join(workDir, "platforms", "ios", "build", configs.Target)
 	if exist, err := pathutil.IsDirExists(iosOutputDir); err != nil {
 		fail("Failed to check if dir (%s) exist, error: %s", iosOutputDir, err)
+		log.Warnf("BP2 failing ios")
 	} else if exist {
+		log.Warnf("BP3 ios exists")
 		iosOutputDirExist = true
 
 		fmt.Println()
@@ -373,6 +377,8 @@ func main() {
 		}
 	}
 
+	log.Warnf("BP4 Android checks that must be skipped")
+
 	var apks, aabs []string
 	androidOutputDirExist := false
 	// examples for apk paths:
@@ -414,6 +420,8 @@ func main() {
 			}
 		}
 	}
+
+	log.Warnf("BP5 checking for existing directories")
 
 	if !iosOutputDirExist && !androidOutputDirExist {
 		log.Warnf("No ios nor android platform's output dir exist")
