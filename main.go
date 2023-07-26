@@ -172,6 +172,18 @@ func fail(format string, v ...interface{}) {
 	os.Exit(1)
 }
 
+func findIosTargetPathComponent(target string, configuration string, cordovaVersion string) string {
+	if cordovaVersion != "" && cordovaVersion[0:1] >= "7" {
+		targetPlatform := "iphonesimulator"
+		if (target == "device") {
+			targetPlatform = "iphoneos"
+		}
+		return strings.Title(configuration) + "-" + targetPlatform
+	} else {
+		return target
+	}
+}
+
 func main() {
 	var configs config
 	if err := stepconf.Parse(&configs); err != nil {
@@ -304,7 +316,7 @@ func main() {
 	// collect outputs
 	var ipas, apps []string
 	iosOutputDirExist := false
-	iosOutputDir := filepath.Join(workDir, "platforms", "ios", "build", configs.Target)
+	iosOutputDir := filepath.Join(workDir, "platforms", "ios", "build", findIosTargetPathComponent(configs.Target, configs.Configuration, configs.CordovaVersion))
 	log.Warnf("Output dir %s", iosOutputDir)
 	log.Warnf("Target %s", configs.Target)
 	log.Warnf("Configuration %s", configs.Configuration)
