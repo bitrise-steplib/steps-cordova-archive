@@ -1,4 +1,4 @@
-format_version: 6
+format_version: "12"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
@@ -14,10 +14,10 @@ workflows:
     before_run:
     - audit-this-step
     steps:
-    - go-list:
-    - golint:
-    - errcheck:
-    - go-test:
+    - go-list: {}
+    - golint: {}
+    - errcheck: {}
+    - go-test: {}
     after_run:
     - test-with-npm
     - test-with-yarn
@@ -61,7 +61,7 @@ workflows:
             rm -rf ./_tmp
     - change-workdir:
         title: Switch working dir to ./_tmp dir
-        run_if: true
+        run_if: "true"
         inputs:
         - path: ./_tmp
         - is_create_path: true
@@ -93,8 +93,7 @@ workflows:
     - cordova-prepare:
         title: Cordova prepare
         run_if: '{{enveq "RUN_PREPARE_STEP" "true"}}'
-        inputs:
-        # - cordova_version: latest
+        inputs: []
     - path::./:
         title: Cordova archive
         inputs:

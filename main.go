@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -172,6 +173,25 @@ func fail(format string, v ...interface{}) {
 	os.Exit(1)
 }
 
+func findIosTargetPathComponent(target string, configuration string, cordovaVersion string) string {
+	if cordovaVersion == "" {
+		return target
+	}
+
+	majorVersion, err := strconv.Atoi(cordovaVersion[0:1])
+	if err != nil || majorVersion < 7 {
+		// Pre-Cordova-7 behavior: path segment is just "device" or "emulator"
+		return target
+	}
+
+	targetPlatform := "iphonesimulator"
+	if target == "device" {
+		targetPlatform = "iphoneos"
+	}
+
+	return strings.Title(configuration) + "-" + targetPlatform
+}
+
 func main() {
 	var configs config
 	if err := stepconf.Parse(&configs); err != nil {
@@ -302,7 +322,7 @@ func main() {
 	// collect outputs
 	var ipas, apps []string
 	iosOutputDirExist := false
-	iosOutputDir := filepath.Join(workDir, "platforms", "ios", "build", configs.Target)
+	iosOutputDir := filepath.Join(workDir, "platforms", "ios", "build", findIosTargetPathComponent(configs.Target, configs.Configuration, configs.CordovaVersion))
 	if exist, err := pathutil.IsDirExists(iosOutputDir); err != nil {
 		fail("Failed to check if dir (%s) exist, error: %s", iosOutputDir, err)
 	} else if exist {
