@@ -178,9 +178,9 @@ func findIosTargetPathComponent(target string, configuration string, cordovaVers
 		if (target == "device") {
 			targetPlatform = "iphoneos"
 		}
-		return strings.Title(configuration) + "-" + targetPlatform
+		return fmt.Sprintf("%s-%s", strings.Title(configuration), targetPlatform)
 	} else {
-		return target
+		return target // "emulator" or "device"
 	}
 }
 
