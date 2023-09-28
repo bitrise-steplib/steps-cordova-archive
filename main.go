@@ -178,7 +178,7 @@ func findIosTargetPathComponent(target string, configuration string, cordovaVers
 		return target
 	}
 
-	majorVersion, err := strconv.Atoi(cordovaVersion[0:1])
+	majorVersion, err := strconv.Atoi(strings.Split(cordovaVersion, ".")[0])
 	if err != nil || majorVersion < 7 {
 		// Pre-Cordova-7 behavior: path segment is just "device" or "emulator"
 		return target
