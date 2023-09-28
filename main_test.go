@@ -198,8 +198,8 @@ func Test_findIosTargetPathComponentDeviceRelease7(t *testing.T) {
     }
 }
 
-func Test_findIosTargetPathComponentDeviceDebug7(t *testing.T) {
-    got := findIosTargetPathComponent("device", "debug", "7.0.0")
+func Test_findIosTargetPathComponentDeviceDebug10Plus(t *testing.T) {
+    got := findIosTargetPathComponent("device", "debug", "99.0.0")
     want := "Debug-iphoneos"
     if got != want {
         t.Errorf("got %q, wanted %q", got, want)
