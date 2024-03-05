@@ -2,8 +2,6 @@ package main
 
 import (
 	"testing"
-
-	"github.com/stretchr/testify/require"
 )
 
 func Test_getIosOutputCandidateDirsPaths(t *testing.T) {
@@ -36,7 +34,14 @@ func Test_getIosOutputCandidateDirsPaths(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			got := getIosOutputCandidateDirsPaths("/workdir", tc.target, tc.configuration)
-			require.Equal(t, tc.want, got)
+			if len(got) != len(tc.want) {
+				t.Fatalf("got len %v not equal to want len %v", got, tc.want)
+			}
+			for i, wantElem := range tc.want {
+				if wantElem != got[i] {
+					t.Fatalf("got %v not equal to want %v", got, tc.want)
+				}
+			}
 		})
 	}
 }
