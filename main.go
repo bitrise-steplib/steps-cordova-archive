@@ -307,7 +307,7 @@ func main() {
 	if iosOutputDirExist {
 		fmt.Println()
 		log.Infof("Collecting iOS outputs")
-		log.Debugf("iOS output directory: %s", iosOutputDir)
+		log.Printf("iOS output directory: %s", iosOutputDir)
 
 		ipas, err = findArtifact(iosOutputDir, "ipa", compileStart)
 		if err != nil {
