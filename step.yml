@@ -25,8 +25,7 @@ description: |-
 
   ### Troubleshooting
 
-  - If you run a `release` build, make sure that your code signing configurations are correct. The Step will fail if the **Generate Cordova build configuration** Step does not have the required code signing inputs - for example, if you mean to deploy an iOS app to the App Store, you need a Distribution code signing identity. And of course check the code signing files that you uploaded to Bitrise! 
-
+  - If you run a `release` build, make sure that your code signing configurations are correct. The Step will fail if the **Generate Cordova build configuration** Step does not have the required code signing inputs - for example, if you mean to deploy an iOS app to the App Store, you need a Distribution code signing identity. And of course check the code signing files that you uploaded to Bitrise!
 
   ### Useful links
 
@@ -52,138 +51,138 @@ toolkit:
   go:
     package_name: github.com/bitrise-steplib/steps-cordova-archive
 inputs:
-  - platform: "ios,android"
-    opts:
-      title: "Platform to use in cordova-cli commands"
-      description: |-
-        Specify this input to apply cordova-cli commands to the desired platforms only.
+- platform: ios,android
+  opts:
+    title: Platform to use in cordova-cli commands
+    description: |-
+      Specify this input to apply cordova-cli commands to the desired platforms only.
 
-        `cordova build [OTHER_PARAMS] <platform>`
+      `cordova build [OTHER_PARAMS] <platform>`
 
-      value_options:
-      - "ios,android"
-      - "ios"
-      - "android"
-      is_required: true
-  - configuration: release
-    opts:
-      title: "Build command configuration"
-      description: |-
-        Specify build command configuration.
+    value_options:
+    - ios,android
+    - ios
+    - android
+    is_required: true
+- configuration: release
+  opts:
+    title: Build command configuration
+    description: |-
+      Specify build command configuration.
 
-        `cordova build [OTHER_PARAMS] [--release | --debug]`
-      value_options:
-      - release
-      - debug
-      is_required: true
-  - target: device
-    opts:
-      title: "Build command target"
-      description: |-
-        Specify build command target.
+      `cordova build [OTHER_PARAMS] [--release | --debug]`
+    value_options:
+    - release
+    - debug
+    is_required: true
+- target: device
+  opts:
+    title: Build command target
+    description: |-
+      Specify build command target.
 
-        `cordova build [OTHER_PARAMS] [--device | --emulator]`
-      value_options:
-      - device
-      - emulator
-      is_required: true
-  - build_config: $BITRISE_CORDOVA_BUILD_CONFIGURATION
-    opts:
-      title: "Build configuration path to describe code signing properties"
-      description: |-
-        Path to the build configuration file (build.json), which describes code signing properties.
-  - run_cordova_prepare: "true"
-    opts:
-      title: "Should `cordova prepare` be executed before `cordova compile`?"
-      description: |-
-        Should be left at the default (true) value, except if the cordova-prepare step is used.
+      `cordova build [OTHER_PARAMS] [--device | --emulator]`
+    value_options:
+    - device
+    - emulator
+    is_required: true
+- build_config: $BITRISE_CORDOVA_BUILD_CONFIGURATION
+  opts:
+    title: Build configuration path to describe code signing properties
+    description: |-
+      Path to the build configuration file (build.json), which describes code signing properties.
+- run_cordova_prepare: "true"
+  opts:
+    title: Should `cordova prepare` be executed before `cordova compile`?
+    description: |-
+      Should be left at the default (true) value, except if the cordova-prepare step is used.
 
-        - true: `cordova prepare <platform>` followed by `cordova compile <platform>`
-        - false: `cordova compile <platform>`
-      value_options:
-      - "true"
-      - "false"
-      is_required: true
-  - cordova_version:
-    opts:
-      title: "Cordova version"
-      description: |-
-        The version of cordova you want to use.
+      - true: `cordova prepare <platform>` followed by `cordova compile <platform>`
+      - false: `cordova compile <platform>`
+    value_options:
+    - "true"
+    - "false"
+    is_required: true
+- cordova_version:
+  opts:
+    title: Cordova version
+    description: |-
+      The version of cordova you want to use.
 
-        If the value is set to `latest`, the step will update to the latest cordova version.
-        Leave this input field empty to use the preinstalled cordova version.
-  - workdir: $BITRISE_SOURCE_DIR
-    opts:
-      title: "Working directory"
-      summary: ""
-      description: |-
-        Root directory of your Cordova project, where your Cordova config.xml exists.
-      is_required: true
-  - options:
-    opts:
-      title: "Options to append to the cordova-cli build command"
-      description: |-
-        Use this input to specify custom options, to append to the end of the cordova-cli build command.
+      If the value is set to `latest`, the step will update to the latest cordova version.
+      Leave this input field empty to use the preinstalled cordova version.
+- workdir: $BITRISE_SOURCE_DIR
+  opts:
+    title: Working directory
+    summary: ""
+    description: |-
+      Root directory of your Cordova project, where your Cordova config.xml exists.
+    is_required: true
+- options:
+  opts:
+    title: Options to append to the cordova-cli build command
+    description: |-
+      Use this input to specify custom options, to append to the end of the cordova-cli build command.
 
-        The new Xcode build system is now supported in cordova-ios@5.0.0 (https://github.com/apache/cordova-ios/issues/407).
-        Example:
-        - `--browserify`
+      The new Xcode build system is now supported in cordova-ios@5.0.0 (https://github.com/apache/cordova-ios/issues/407).
+      Example:
+      - `--browserify`
 
-        `cordova build [OTHER_PARAMS] [options]`
-  - build_system: "modern"
-    opts:
-      title: "Xcode build system"
-      description: |-
-        The Xcode build system to use.
+      `cordova build [OTHER_PARAMS] [options]`
+- build_system: modern
+  opts:
+    title: Xcode build system
+    description: |-
+      The Xcode build system to use.
 
-        - legacy: Use the legacy build system.
-        - modern: Use the new Xcode build system.
-      value_options:
-      - legacy
-      - modern
-      is_required: true
-  - cache_local_deps: "false"
-    opts:
-      category: Cache
-      title: Cache node_modules
-      description: |
-        Select if the contents of node_modules directory should be cached.
-        `true`: Mark local dependencies to be cached.
-        `false`: Do not use cache.
-      is_required: true
-      value_options:
-      - "true"
-      - "false"
-  - android_app_type: apk
-    opts:
-      category: Android
-      title: Android app type
-      summary: Distribution type when building the Android app
-      description: Distribution type when building the Android app
-      is_required: true
-      value_options:
-      - apk
-      - aab
+      - legacy: Use the legacy build system.
+      - modern: Use the new Xcode build system.
+    value_options:
+    - legacy
+    - modern
+    is_required: true
+- cache_local_deps: "false"
+  opts:
+    category: Cache
+    title: Cache node_modules
+    description: |
+      Select if the contents of node_modules directory should be cached.
+      `true`: Mark local dependencies to be cached.
+      `false`: Do not use cache.
+    is_required: true
+    value_options:
+    - "true"
+    - "false"
+- android_app_type: apk
+  opts:
+    category: Android
+    title: Android app type
+    summary: Distribution type when building the Android app
+    description: Distribution type when building the Android app
+    is_required: true
+    value_options:
+    - apk
+    - aab
 
 outputs:
-  - BITRISE_IPA_PATH:
-    opts:
-      title: The created ios .ipa file's path
-  - BITRISE_APP_DIR_PATH:
-    opts:
-      title: The created ios .app dir's path
-  - BITRISE_APP_PATH:
-    opts:
-      title: The created ios .app.zip file's path
-  - BITRISE_DSYM_DIR_PATH:
-    opts:
-      title: The created ios .dSYM dir's path
-  - BITRISE_DSYM_PATH:
-    opts:
-      title: The created ios .dSYM.zip file's path
-  - BITRISE_APK_PATH: ""
-    opts:
-      title: The created android .apk file's path
-  - BITRISE_AAB_PATH: ""
-    opts:
-      title: The created android .aab file's path
+- BITRISE_IPA_PATH:
+  opts:
+    title: The created ios .ipa file's path
+- BITRISE_APP_DIR_PATH:
+  opts:
+    title: The created ios .app dir's path
+- BITRISE_APP_PATH:
+  opts:
+    title: The created ios .app.zip file's path
+- BITRISE_DSYM_DIR_PATH:
+  opts:
+    title: The created ios .dSYM dir's path
+- BITRISE_DSYM_PATH:
+  opts:
+    title: The created ios .dSYM.zip file's path
+- BITRISE_APK_PATH: ""
+  opts:
+    title: The created android .apk file's path
+- BITRISE_AAB_PATH: ""
+  opts:
+    title: The created android .aab file's path

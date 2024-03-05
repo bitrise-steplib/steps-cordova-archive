@@ -3,7 +3,6 @@ default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
 
 app:
   envs:
-  - STEP_VERSION: 2.0.0
   - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
 
 workflows:
@@ -11,13 +10,8 @@ workflows:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
     - SAMPLE_APP_BRANCH: master
-    before_run:
-    - audit-this-step
     steps:
-    - go-list: {}
-    - golint: {}
-    - errcheck: {}
-    - go-test: {}
+    - git::https://github.com/bitrise-steplib/steps-check.git: { }
     after_run:
     - test-with-npm
     - test-with-yarn
@@ -69,7 +63,7 @@ workflows:
         inputs:
         - content: git clone --single-branch -b "${SAMPLE_APP_BRANCH}" "${SAMPLE_APP_URL}" .
     - script:
-        run_if: '{{enveq "USE_YARN" "true"}}'
+        run_if: '{{enveq "USE_YARN" "true"}}'  # yamllint disable-line rule:quoted-strings
         inputs:
         - content: |-
             #!/usr/bin/env bash
@@ -87,12 +81,12 @@ workflows:
 
             envman unset --key ANDROID_NDK_HOME
     - yarn:
-        run_if: '{{enveq "USE_YARN" "true"}}'
+        run_if: '{{enveq "USE_YARN" "true"}}'  # yamllint disable-line rule:quoted-strings
         inputs:
         - command: install
     - cordova-prepare:
         title: Cordova prepare
-        run_if: '{{enveq "RUN_PREPARE_STEP" "true"}}'
+        run_if: '{{enveq "RUN_PREPARE_STEP" "true"}}'  # yamllint disable-line rule:quoted-strings
         inputs: []
     - path::./:
         title: Cordova archive
@@ -142,14 +136,3 @@ workflows:
         title: Change back to original working directory
         inputs:
         - path: ${ORIG_BITRISE_SOURCE_DIR}
-
-  # ----------------------------------------------------------------
-  # --- workflows to Share this step into a Step Library
-  audit-this-step:
-    steps:
-    - script:
-        inputs:
-        - content: |-
-            #!/bin/bash
-            set -ex
-            stepman audit --step-yml ./step.yml
