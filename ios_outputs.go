@@ -14,7 +14,8 @@ func getIosOutputCandidateDirsPaths(workDir string, target string, configuration
 		targetPlatform = "iphoneos"
 	}
 
-	cordovaIOS7targetComponent := strings.Title(configuration) + "-" + targetPlatform
+	// disable linting deprecated Title check SA1019
+	cordovaIOS7targetComponent := strings.Title(configuration) + "-" + targetPlatform //nolint:staticcheck
 
 	return []string{
 		filepath.Join(workDir, "platforms", "ios", "build", target),                     // cordova-ios <7
