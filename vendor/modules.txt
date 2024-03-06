@@ -1,11 +1,11 @@
-# github.com/bitrise-io/go-steputils v0.0.0-20210514150206-5b6261447e77
-## explicit
+# github.com/bitrise-io/go-steputils v1.0.6
+## explicit; go 1.15
 github.com/bitrise-io/go-steputils/cache
 github.com/bitrise-io/go-steputils/jsdependency
 github.com/bitrise-io/go-steputils/stepconf
 github.com/bitrise-io/go-steputils/tools
-# github.com/bitrise-io/go-utils v0.0.0-20210517121358-79fa64f4a5f6
-## explicit
+# github.com/bitrise-io/go-utils v1.0.13
+## explicit; go 1.13
 github.com/bitrise-io/go-utils/colorstring
 github.com/bitrise-io/go-utils/command
 github.com/bitrise-io/go-utils/errorutil
@@ -18,7 +18,3 @@ github.com/bitrise-io/go-utils/ziputil
 # github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51
 ## explicit
 github.com/kballard/go-shellquote
-# golang.org/x/lint v0.0.0-20210508222113-6edffad5e616
-## explicit
-# golang.org/x/tools v0.1.1
-## explicit

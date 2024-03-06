@@ -43,12 +43,12 @@ func Test_platformCustomOptions(t *testing.T) {
 		{
 			"Project with only packageType option and APK output",
 			*New().SetCustomOptions("--", `--packageType="bundle"`).SetPlatforms("android").SetAndroidAppType("apk"),
-			`cordova "compile" "android" "--" "--packageType=apk" "--packageType=\"bundle\""`,
+			`cordova "compile" "android" "--" "--packageType=apk" "--packageType="bundle""`,
 		},
 		{
 			"Project with only packageType option and AAB output",
 			*New().SetCustomOptions("--", `--packageType="bundle"`).SetPlatforms("android").SetAndroidAppType("bundle"),
-			`cordova "compile" "android" "--" "--packageType=bundle" "--packageType=\"bundle\""`,
+			`cordova "compile" "android" "--" "--packageType=bundle" "--packageType="bundle""`,
 		},
 	}
 
