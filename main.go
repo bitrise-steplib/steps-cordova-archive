@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/go-utils/sliceutil"
+
 	"github.com/bitrise-io/go-utils/ziputil"
 	"github.com/bitrise-steplib/steps-cordova-archive/cordova"
 	"github.com/kballard/go-shellquote"
@@ -150,13 +151,13 @@ func findArtifact(rootDir, ext string, buildStart time.Time) ([]string, error) {
 
 func checkBuildProducts(apks []string, aabs []string, apps []string, ipas []string, platforms []string, target string) error {
 	// if android in platforms
-	if sliceutil.IsStringInSlice("android", platforms) {
+	if slices.Contains(platforms, "android") {
 		if len(apks) == 0 && len(aabs) == 0 {
 			return errors.New("no apk or aab generated")
 		}
 	}
 	// if ios in platforms
-	if sliceutil.IsStringInSlice("ios", platforms) {
+	if slices.Contains(platforms, "ios") {
 		if len(apps) == 0 && target == "emulator" {
 			return errors.New("No app generated")
 		}
