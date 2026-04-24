@@ -54,6 +54,7 @@ inputs:
 - platform: ios,android
   opts:
     title: Platform to use in cordova-cli commands
+    summary: Specify this input to apply cordova-cli commands to the desired platforms only.
     description: |-
       Specify this input to apply cordova-cli commands to the desired platforms only.
 
@@ -67,6 +68,7 @@ inputs:
 - configuration: release
   opts:
     title: Build command configuration
+    summary: Specify build command configuration.
     description: |-
       Specify build command configuration.
 
@@ -78,6 +80,7 @@ inputs:
 - target: device
   opts:
     title: Build command target
+    summary: Specify build command target.
     description: |-
       Specify build command target.
 
@@ -89,11 +92,13 @@ inputs:
 - build_config: $BITRISE_CORDOVA_BUILD_CONFIGURATION
   opts:
     title: Build configuration path to describe code signing properties
+    summary: Path to the build configuration file (build.json).
     description: |-
       Path to the build configuration file (build.json), which describes code signing properties.
 - run_cordova_prepare: "true"
   opts:
     title: Should `cordova prepare` be executed before `cordova compile`?
+    summary: Should cordova prepare be executed before cordova compile.
     description: |-
       Should be left at the default (true) value, except if the cordova-prepare step is used.
 
@@ -106,6 +111,7 @@ inputs:
 - cordova_version:
   opts:
     title: Cordova version
+    summary: The version of cordova you want to use.
     description: |-
       The version of cordova you want to use.
 
@@ -121,6 +127,7 @@ inputs:
 - options:
   opts:
     title: Options to append to the cordova-cli build command
+    summary: Custom options to append to the cordova-cli build command.
     description: |-
       Use this input to specify custom options, to append to the end of the cordova-cli build command.
 
@@ -132,6 +139,7 @@ inputs:
 - build_system: modern
   opts:
     title: Xcode build system
+    summary: The Xcode build system to use.
     description: |-
       The Xcode build system to use.
 
@@ -145,6 +153,7 @@ inputs:
   opts:
     category: Cache
     title: Cache node_modules
+    summary: Select if the contents of node_modules directory should be cached.
     description: |
       Select if the contents of node_modules directory should be cached.
       `true`: Mark local dependencies to be cached.
@@ -168,21 +177,35 @@ outputs:
 - BITRISE_IPA_PATH:
   opts:
     title: The created ios .ipa file's path
+    summary: The created iOS .ipa file's path.
+    description: The created iOS .ipa file's path.
 - BITRISE_APP_DIR_PATH:
   opts:
     title: The created ios .app dir's path
+    summary: The created iOS .app directory's path.
+    description: The created iOS .app directory's path.
 - BITRISE_APP_PATH:
   opts:
     title: The created ios .app.zip file's path
+    summary: The created iOS .app.zip file's path.
+    description: The created iOS .app.zip file's path.
 - BITRISE_DSYM_DIR_PATH:
   opts:
     title: The created ios .dSYM dir's path
+    summary: The created iOS .dSYM directory's path.
+    description: The created iOS .dSYM directory's path.
 - BITRISE_DSYM_PATH:
   opts:
     title: The created ios .dSYM.zip file's path
+    summary: The created iOS .dSYM.zip file's path.
+    description: The created iOS .dSYM.zip file's path.
 - BITRISE_APK_PATH: ""
   opts:
     title: The created android .apk file's path
+    summary: The created Android .apk file's path.
+    description: The created Android .apk file's path.
 - BITRISE_AAB_PATH: ""
   opts:
     title: The created android .aab file's path
+    summary: The created Android .aab file's path.
+    description: The created Android .aab file's path.
