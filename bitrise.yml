@@ -6,6 +6,10 @@ app:
   - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
 
 workflows:
+  generate_readme:
+    steps:
+    - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main: { }
+
   test:
     envs:
     - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
