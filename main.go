@@ -329,6 +329,17 @@ func main() {
 		if err != nil {
 			fail("Failed to find dSYMs in dir (%s), error: %s", iosOutputDir, err)
 		}
+		// Xcode 26+ places dSYMs in DerivedData rather than alongside the .app in the platform build dir
+		if len(dsyms) == 0 {
+			if derivedData, err := derivedDataPath(); err != nil {
+				log.Warnf("Failed to get DerivedData path: %s", err)
+			} else {
+				dsyms, err = findArtifact(derivedData, "dSYM", compileStart)
+				if err != nil {
+					log.Warnf("Failed to find dSYMs in DerivedData (%s): %s", derivedData, err)
+				}
+			}
+		}
 
 		if len(dsyms) > 0 {
 			if exportedPth, err := moveAndExportOutputs(dsyms, configs.DeployDir, dsymDirPathEnvKey, true); err != nil {
