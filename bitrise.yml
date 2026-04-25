@@ -98,7 +98,7 @@ workflows:
         - target: emulator
         # - cordova_version: latest
         - run_cordova_prepare: ${RUN_PREPARE_IN_ARCHIVE}
-        - options: --target "Bitrise iOS default"
+        - options: --target "iPhone-17"
     - script:
         title: Output test
         inputs:
