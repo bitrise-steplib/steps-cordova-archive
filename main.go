@@ -252,21 +252,23 @@ func main() {
 	builder.SetConfiguration(configs.Configuration)
 	builder.SetTarget(configs.Target)
 
+	var customOptions []string
 	if configs.Options != "" {
 		options, err := shellquote.Split(configs.Options)
 		if err != nil {
 			fail("Failed to shell split Options (%s), error: %s", configs.Options, err)
 		}
-
-		builder.SetCustomOptions(options...)
+		customOptions = append(customOptions, options...)
 	}
 
 	if configs.BuildSystem == "legacy" {
-		legacyQuery := "--buildFlag='-UseModernBuildSystem=0'"
-		builder.SetCustomOptions(legacyQuery)
+		customOptions = append(customOptions, "--buildFlag='-UseModernBuildSystem=0'")
 	} else if configs.BuildSystem == "modern" {
-		modernQuery := "--buildFlag='-UseModernBuildSystem=1'"
-		builder.SetCustomOptions(modernQuery)
+		customOptions = append(customOptions, "--buildFlag='-UseModernBuildSystem=1'")
+	}
+
+	if len(customOptions) > 0 {
+		builder.SetCustomOptions(customOptions...)
 	}
 
 	builder.SetBuildConfig(configs.BuildConfig)
