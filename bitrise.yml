@@ -12,7 +12,7 @@ workflows:
 
   test:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-cordova-with-karma-jasmine.git
     - SAMPLE_APP_BRANCH: bb/android_35
     steps:
     - git::https://github.com/bitrise-steplib/steps-check.git: { }
