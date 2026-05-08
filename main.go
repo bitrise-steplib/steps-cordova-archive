@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 	"github.com/bitrise-io/go-utils/errorutil"
 	"github.com/bitrise-io/go-utils/log"
 	"github.com/bitrise-io/go-utils/pathutil"
-	"github.com/bitrise-io/go-utils/sliceutil"
+
 	"github.com/bitrise-io/go-utils/ziputil"
 	"github.com/bitrise-steplib/steps-cordova-archive/cordova"
 	"github.com/kballard/go-shellquote"
@@ -150,13 +151,13 @@ func findArtifact(rootDir, ext string, buildStart time.Time) ([]string, error) {
 
 func checkBuildProducts(apks []string, aabs []string, apps []string, ipas []string, platforms []string, target string) error {
 	// if android in platforms
-	if sliceutil.IsStringInSlice("android", platforms) {
+	if slices.Contains(platforms, "android") {
 		if len(apks) == 0 && len(aabs) == 0 {
 			return errors.New("no apk or aab generated")
 		}
 	}
 	// if ios in platforms
-	if sliceutil.IsStringInSlice("ios", platforms) {
+	if slices.Contains(platforms, "ios") {
 		if len(apps) == 0 && target == "emulator" {
 			return errors.New("No app generated")
 		}
@@ -251,21 +252,23 @@ func main() {
 	builder.SetConfiguration(configs.Configuration)
 	builder.SetTarget(configs.Target)
 
+	var customOptions []string
 	if configs.Options != "" {
 		options, err := shellquote.Split(configs.Options)
 		if err != nil {
 			fail("Failed to shell split Options (%s), error: %s", configs.Options, err)
 		}
-
-		builder.SetCustomOptions(options...)
+		customOptions = append(customOptions, options...)
 	}
 
 	if configs.BuildSystem == "legacy" {
-		legacyQuery := "--buildFlag='-UseModernBuildSystem=0'"
-		builder.SetCustomOptions(legacyQuery)
+		customOptions = append(customOptions, "--buildFlag='-UseModernBuildSystem=0'")
 	} else if configs.BuildSystem == "modern" {
-		modernQuery := "--buildFlag='-UseModernBuildSystem=1'"
-		builder.SetCustomOptions(modernQuery)
+		customOptions = append(customOptions, "--buildFlag='-UseModernBuildSystem=1'")
+	}
+
+	if len(customOptions) > 0 {
+		builder.SetCustomOptions(customOptions...)
 	}
 
 	builder.SetBuildConfig(configs.BuildConfig)
@@ -325,6 +328,17 @@ func main() {
 		dsyms, err := findArtifact(iosOutputDir, "dSYM", compileStart)
 		if err != nil {
 			fail("Failed to find dSYMs in dir (%s), error: %s", iosOutputDir, err)
+		}
+		// Xcode 26+ places dSYMs in DerivedData rather than alongside the .app in the platform build dir
+		if len(dsyms) == 0 {
+			if derivedData, err := derivedDataPath(); err != nil {
+				log.Warnf("Failed to get DerivedData path: %s", err)
+			} else {
+				dsyms, err = findArtifact(derivedData, "dSYM", compileStart)
+				if err != nil {
+					log.Warnf("Failed to find dSYMs in DerivedData (%s): %s", derivedData, err)
+				}
+			}
 		}
 
 		if len(dsyms) > 0 {

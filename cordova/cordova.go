@@ -2,8 +2,9 @@ package cordova
 
 import (
 	"fmt"
+	"slices"
+
 	"github.com/bitrise-io/go-utils/command"
-	"github.com/bitrise-io/go-utils/sliceutil"
 )
 
 // Model ...
@@ -83,7 +84,7 @@ func (builder *Model) commandSlice(cmd ...string) []string {
 		// Cordova CLI expects platform-specific arguments to be listed after a -- separator
 		// We parse user-specified options and group them separately
 		separator := "--"
-		separatorIndex := sliceutil.IndexOfStringInSlice(separator, builder.customOptions)
+		separatorIndex := slices.Index(builder.customOptions, separator)
 		var generalOptions []string
 		var platformOptions []string
 

@@ -1,91 +1,95 @@
 # Cordova Archive
 
-Archives your Cordova project
+[![Step changelog](https://shields.io/github/v/release/bitrise-steplib/steps-cordova-archive?include_prereleases&label=changelog&color=blueviolet)](https://github.com/bitrise-steplib/steps-cordova-archive/releases)
 
-## How to use this Step
+Creates an archive of your Cordova project by calling `cordova prepare` and then `cordova compile`, using your Cordova build configuration.
 
-It can be run directly with the [bitrise CLI](https://github.com/bitrise-io/bitrise),
-just `git clone` this repository, `cd` into it's folder in your Terminal/Command Line
-and call `bitrise run test`.
-
-*Check the `bitrise.yml` file for required inputs which have to be
-added to your `.bitrise.secrets.yml` file!*
-
-Step by step:
-
-1. Open up your Terminal / Command Line
-2. `git clone` the repository
-3. `cd` into the directory of the step (the one which was just `git clone`d)
-5. Create a `.bitrise.secrets.yml` file in the same directory of `bitrise.yml` - the `.bitrise.secrets.yml` is a git ignored file, you can store your secrets in
-6. Check the `bitrise.yml` file for any secret you should set in `.bitrise.secrets.yml`
-  * Best practice is to mark these options with something like `# define these in your .bitrise.secrets.yml`, in the `app:envs` section.
-7. Once you have all the required secret parameters in your `.bitrise.secrets.yml` you can just run this step with the [bitrise CLI](https://github.com/bitrise-io/bitrise): `bitrise run test`
-
-An example `.bitrise.secrets.yml` file:
-
-```
-envs:
-- A_SECRET_PARAM_ONE: the value for secret one
-- A_SECRET_PARAM_TWO: the value for secret two
-```
-
-## How to create your own step
-
-1. Create a new git repository for your step (**don't fork** the *step template*, create a *new* repository)
-2. Copy the [step template](https://github.com/bitrise-steplib/step-template) files into your repository
-3. Fill the `step.sh` with your functionality
-4. Wire out your inputs to `step.yml` (`inputs` section)
-5. Fill out the other parts of the `step.yml` too
-6. Provide test values for the inputs in the `bitrise.yml`
-7. Run your step with `bitrise run test` - if it works, you're ready
-
-__For Step development guidelines & best practices__ check this documentation: [https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md](https://github.com/bitrise-io/bitrise/blob/master/_docs/step-development-guideline.md).
-
-**NOTE**
-
-If you want to use your step in your project's `bitrise.yml`:
-
-1. git push the step into it's repository
-2. reference it in your `bitrise.yml` with the `git::PUBLIC-GIT-CLONE-URL@BRANCH` step reference style:
-
-```
-- git::https://github.com/user/my-step.git@branch:
-   title: My step
-   inputs:
-   - my_input_1: "my value 1"
-   - my_input_2: "my value 2"
-```
-
-You can find more examples of step reference styles
-in the [bitrise CLI repository](https://github.com/bitrise-io/bitrise/blob/master/_examples/tutorials/steps-and-workflows/bitrise.yml#L65).
-
-## How to contribute to this Step
-
-1. Fork this repository
-2. `git clone` it
-3. Create a branch that you'll work on
-4. To use/test the step just follow the **How to use this Step** section
-5. Do the changes you want to do
-6. Run/test the step before sending your contribution
-  * You can also test the step in your `bitrise` project, either on your Mac or on [bitrise.io](https://www.bitrise.io)
-  * You just have to replace the step ID in your project's `bitrise.yml` with either a relative path, or with a git URL format
-  * (relative) path format: instead of `- original-step-id:` use `- path::./relative/path/of/script/on/your/Mac:`
-  * direct git URL format: instead of `- original-step-id:` use `- git::https://github.com/user/step.git@branch:`
-  * You can find more example of alternative step referencing at: https://github.com/bitrise-io/bitrise/blob/master/_examples/tutorials/steps-and-workflows/bitrise.yml
-7. Once you're done, commit your changes & create a Pull Request
+<details>
+<summary>Description</summary>
 
 
-## Share your own Step
+The Step creates an archive of your Cordova project: it prepares the project by calling `cordova prepare` and then archives it by calling `cordova compile` with the Cordova CLI.
 
-You can share your Step or step version with the [bitrise CLI](https://github.com/bitrise-io/bitrise). If you use the `bitrise.yml` included in this repository, all you have to do is:
+If you want to perform code signing on your app, the Step requires the **Generate Cordova build configuration** Step: this Step provides the configuration for the **Cordova Archive** Step.
 
-1. In your Terminal / Command Line `cd` into this directory (where the `bitrise.yml` of the step is located)
-1. Run: `bitrise run test` to test the step
-1. Run: `bitrise run audit-this-step` to audit the `step.yml`
-1. Check the `share-this-step` workflow in the `bitrise.yml`, and fill out the
-   `envs` if you haven't done so already (don't forget to bump the version number if this is an update
-   of your step!)
-1. Then run: `bitrise run share-this-step` to share the step (version) you specified in the `envs`
-1. Send the Pull Request, as described in the logs of `bitrise run share-this-step`
+### Configuring the Step
 
-That's all ;)
+The Step needs to know the platform (iOS, Android, or both), the mode (release or debug), and the target (device or emulator) of your build. You decide whether you want the Step to run the `cordova prepare` command or you want to use the **Cordova Prepare** Step.
+
+1. In the **Platform to use in cordova-cli commands** input, set the platforms you need.
+1. In the **Build command configuration** input, set the build mode for the app.
+
+   This can be either `release` or `debug`.
+
+1. In the **Build command target** input, set whether you want to build the app for a device or an emulator.
+
+1. If you use the **Cordova Prepare** Step, set the **Should `cordova prepare` be executed before `cordova compile`?** input to `false`.
+
+1. If you want to deploy your app, the **Build configuration path to describe code signing properties** input should be set to `$BITRISE_CORDOVA_BUILD_CONFIGURATION`.
+
+   This Environment Variable is exposed by the **Generate Cordova build configuration** Step.
+
+### Troubleshooting
+
+- If you run a `release` build, make sure that your code signing configurations are correct. The Step will fail if the **Generate Cordova build configuration** Step does not have the required code signing inputs - for example, if you mean to deploy an iOS app to the App Store, you need a Distribution code signing identity. And of course check the code signing files that you uploaded to Bitrise!
+
+### Useful links
+
+- [Getting started with Ionic/Cordova apps](https://devcenter.bitrise.io/getting-started/getting-started-with-ionic-cordova-apps/)
+
+### Related Steps
+
+- [Generate Cordova build configuration](https://www.bitrise.io/integrations/steps/generate-cordova-build-configuration)
+- [Cordova Prepare](https://www.bitrise.io/integrations/steps/cordova-prepare)
+- [Manipulate Cordova config.xml](https://www.bitrise.io/integrations/steps/cordova-config)
+</details>
+
+## 🧩 Get started
+
+Add this step directly to your workflow in the [Bitrise Workflow Editor](https://docs.bitrise.io/en/bitrise-ci/workflows-and-pipelines/steps/adding-steps-to-a-workflow.html).
+
+You can also run this step directly with [Bitrise CLI](https://github.com/bitrise-io/bitrise).
+
+## ⚙️ Configuration
+
+<details>
+<summary>Inputs</summary>
+
+| Key | Description | Flags | Default |
+| --- | --- | --- | --- |
+| `platform` | Specify this input to apply cordova-cli commands to the desired platforms only.  `cordova build [OTHER_PARAMS] <platform>` | required | `ios,android` |
+| `configuration` | Specify build command configuration.  `cordova build [OTHER_PARAMS] [--release \| --debug]` | required | `release` |
+| `target` | Specify build command target.  `cordova build [OTHER_PARAMS] [--device \| --emulator]` | required | `device` |
+| `build_config` | Path to the build configuration file (build.json), which describes code signing properties. |  | `$BITRISE_CORDOVA_BUILD_CONFIGURATION` |
+| `run_cordova_prepare` | Should be left at the default (true) value, except if the cordova-prepare step is used.  - true: `cordova prepare <platform>` followed by `cordova compile <platform>` - false: `cordova compile <platform>` | required | `true` |
+| `cordova_version` | The version of cordova you want to use.  If the value is set to `latest`, the step will update to the latest cordova version. Leave this input field empty to use the preinstalled cordova version. |  |  |
+| `workdir` | Root directory of your Cordova project, where your Cordova config.xml exists. | required | `$BITRISE_SOURCE_DIR` |
+| `options` | Use this input to specify custom options, to append to the end of the cordova-cli build command.  The new Xcode build system is now supported in cordova-ios@5.0.0 (https://github.com/apache/cordova-ios/issues/407). Example: - `--browserify`  `cordova build [OTHER_PARAMS] [options]` |  |  |
+| `build_system` | The Xcode build system to use.  - legacy: Use the legacy build system. - modern: Use the new Xcode build system. | required | `modern` |
+| `cache_local_deps` | Select if the contents of node_modules directory should be cached. `true`: Mark local dependencies to be cached. `false`: Do not use cache.  | required | `false` |
+| `android_app_type` | Distribution type when building the Android app | required | `apk` |
+</details>
+
+<details>
+<summary>Outputs</summary>
+
+| Environment Variable | Description |
+| --- | --- |
+| `BITRISE_IPA_PATH` | The created iOS .ipa file's path. |
+| `BITRISE_APP_DIR_PATH` | The created iOS .app directory's path. |
+| `BITRISE_APP_PATH` | The created iOS .app.zip file's path. |
+| `BITRISE_DSYM_DIR_PATH` | The created iOS .dSYM directory's path. |
+| `BITRISE_DSYM_PATH` | The created iOS .dSYM.zip file's path. |
+| `BITRISE_APK_PATH` | The created Android .apk file's path. |
+| `BITRISE_AAB_PATH` | The created Android .aab file's path. |
+</details>
+
+## 🙋 Contributing
+
+We welcome [pull requests](https://github.com/bitrise-steplib/steps-cordova-archive/pulls) and [issues](https://github.com/bitrise-steplib/steps-cordova-archive/issues) against this repository.
+
+For pull requests, work on your changes in a forked repository and use the Bitrise CLI to [run step tests locally](https://docs.bitrise.io/en/bitrise-ci/bitrise-cli/running-your-first-local-build-with-the-cli.html).
+
+Learn more about developing steps:
+
+- [Create your own step](https://docs.bitrise.io/en/bitrise-ci/workflows-and-pipelines/developing-your-own-bitrise-step/developing-a-new-step.html)

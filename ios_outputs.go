@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -21,6 +22,16 @@ func getIosOutputCandidateDirsPaths(workDir string, target string, configuration
 		filepath.Join(workDir, "platforms", "ios", "build", target),                     // cordova-ios <7
 		filepath.Join(workDir, "platforms", "ios", "build", cordovaIOS7targetComponent), // cordova-ios =>7
 	}
+}
+
+// derivedDataPath returns the default Xcode DerivedData directory.
+// Xcode 26+ places dSYMs only in DerivedData rather than alongside the .app in the platform build dir.
+func derivedDataPath() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, "Library", "Developer", "Xcode", "DerivedData"), nil
 }
 
 func findFirstExistingDir(candidateDirPaths []string) string {

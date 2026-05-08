@@ -6,9 +6,13 @@ app:
   - ORIG_BITRISE_SOURCE_DIR: $BITRISE_SOURCE_DIR
 
 workflows:
+  generate_readme:
+    steps:
+    - git::https://github.com/bitrise-steplib/steps-readme-generator.git@main: { }
+
   test:
     envs:
-    - SAMPLE_APP_URL: https://github.com/bitrise-samples/sample-apps-cordova-with-karma-jasmine.git
+    - SAMPLE_APP_URL: https://github.com/bitrise-io/sample-apps-cordova-with-karma-jasmine.git
     - SAMPLE_APP_BRANCH: master
     steps:
     - git::https://github.com/bitrise-steplib/steps-check.git: { }
@@ -45,7 +49,7 @@ workflows:
     steps:
     - set-java-version:
         inputs:
-        - set_java_version: 8
+        - set_java_version: 17
     - script:
         inputs:
         - content: |-
@@ -63,7 +67,7 @@ workflows:
         inputs:
         - content: git clone --single-branch -b "${SAMPLE_APP_BRANCH}" "${SAMPLE_APP_URL}" .
     - script:
-        run_if: '{{enveq "USE_YARN" "true"}}'  # yamllint disable-line rule:quoted-strings
+        run_if: '{{ enveq "USE_YARN" "true" }}'  # yamllint disable-line rule:quoted-strings
         inputs:
         - content: |-
             #!/usr/bin/env bash
@@ -77,16 +81,16 @@ workflows:
             cordova platform rm ios
             cordova platform add ios
             cordova platform remove android
-            cordova platform add android@8.X.X
+            cordova platform add android@~14.0.0
 
             envman unset --key ANDROID_NDK_HOME
     - yarn:
-        run_if: '{{enveq "USE_YARN" "true"}}'  # yamllint disable-line rule:quoted-strings
+        run_if: '{{ enveq "USE_YARN" "true" }}'  # yamllint disable-line rule:quoted-strings
         inputs:
         - command: install
     - cordova-prepare:
         title: Cordova prepare
-        run_if: '{{enveq "RUN_PREPARE_STEP" "true"}}'  # yamllint disable-line rule:quoted-strings
+        run_if: '{{ enveq "RUN_PREPARE_STEP" "true" }}'  # yamllint disable-line rule:quoted-strings
         inputs: []
     - path::./:
         title: Cordova archive
@@ -94,6 +98,7 @@ workflows:
         - target: emulator
         # - cordova_version: latest
         - run_cordova_prepare: ${RUN_PREPARE_IN_ARCHIVE}
+        - options: --target "iPhone-17"
     - script:
         title: Output test
         inputs:
